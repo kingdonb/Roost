@@ -320,6 +320,7 @@ void pir_chk_motion(){
 //
 #include "SSD1306.h"
 #include "SSD1306Brzo.h"
+#include "Liberation_Mono.h"
 // #include "images.h"
 
 // Initialize the OLED display using brzo_i2c
@@ -513,6 +514,7 @@ void web_setup(){
 #include "ThingSpeak.h"
 unsigned long myChannelNumber = 00000;
 const char * myWriteAPIKey = "xxxxxxxxxxxxxxxxx";
+int thingFoo;
 
 void iot_setup(){
     // client from WiFi client
@@ -521,11 +523,11 @@ void iot_setup(){
 }
 
 void iot_send_data(){
-    ThingSpeak.setField(1,x);
-    ThingSpeak.setField(2,x);
-    ThingSpeak.setField(3,x);
-    ThingSpeak.setField(4,x);
-    ThingSpeak.setField(5,x);
+    ThingSpeak.setField(1,thingFoo);
+    ThingSpeak.setField(2,thingFoo);
+    ThingSpeak.setField(3,thingFoo);
+    ThingSpeak.setField(4,thingFoo);
+    ThingSpeak.setField(5,thingFoo);
 
     // Write the fields that you've set all at once.
     ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  

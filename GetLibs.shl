@@ -2,12 +2,13 @@
 #
 # grab libraries from github needed for Roost! project
 #
+# Follow instructions on https://github.com/esp8266/Arduino for "Installing with Boards Manager"
+#
 cd libraries/
 
 git clone https://github.com/PaulStoffregen/Time.git
-git clone https://github.com/adafruit/dht-sensor-library
-git clone https://github.com/esp8266/Arduino
+git clone https://github.com/adafruit/DHT-sensor-library.git
 git clone https://github.com/mathworks/thingspeak-arduino.git
 git clone https://github.com/pasko-zh/brzo_i2c.git
 git clone https://github.com/squix78/esp8266-oled-ssd1306
-
+git clone https://github.com/adafruit/Adafruit_Sensor.git

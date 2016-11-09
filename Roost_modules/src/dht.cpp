@@ -6,7 +6,7 @@
 //       https://github.com/adafruit/dht-sensor-library
 //
 
-void dht_clear(){ h=t=f=hic=hif=0; }
+void dht_clear(){ h=t=f=hic=hif=0.0; }
 
 void dht_setup(){ dht_clear(); }
 
@@ -29,7 +29,7 @@ void dht_read() {
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t) || isnan(f)) {
     Serial.println("Failed to read from DHT sensor!");
-    h=t=f=hic=hif=0;
+    h=t=f=hic=hif=0.0;
 
   } else {
     // Compute heat index in Fahrenheit (the default)
