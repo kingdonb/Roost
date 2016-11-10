@@ -61,7 +61,7 @@ void led_blink(int l, int d){
 // -----------------------------------------------------------------------------
 // Wifi Control: code for dealing with WiFi for the "Roost!" project
 //               requires ESP8266 WiFi libraries
-//               https://github.com/esp8266/Arduino/*
+//               https://github.com/esp8266/Arduino
 //
 #include <ESP8266WiFi.h>
 
@@ -314,6 +314,39 @@ void pir_chk_motion(){
 }
 
 // -----------------------------------------------------------------------------
+// Serial output: code for dealing with serial output for the "Roost!" project
+//  
+#define SERIAL_BAUD 74880               // ESP native speed
+
+void serial_setup(){
+  Serial.begin(SERIAL_BAUD);
+  Serial.println("Roost initializing!");
+}
+
+void serial_roost() {
+  Serial.print("NTP epoch: ");
+  Serial.print(ntp_epoch_in_seconds);
+
+  Serial.print(" \tHumidity: ");
+  Serial.print(h);
+
+  Serial.print(" % \tTemperature: ");
+  Serial.print(t);
+  Serial.print(" *C ");
+  Serial.print(f);
+  Serial.print(" *F");
+
+  Serial.print(" \tHeat index: ");
+  Serial.print(hic);
+  Serial.print(" *C ");
+  Serial.print(hif);
+  Serial.print(" *F\t");
+
+  Serial.print("last motion: ");
+  Serial.println(pir_last_motion);
+}
+
+// -----------------------------------------------------------------------------
 // OLED control: code for dealing with oled for the "Roost!" project
 //               uses library by Daniel Eichhorn downloaded from github
 //               https://github.com/squix78/esp8266-oled-ssd1306
@@ -378,40 +411,6 @@ void oled_roost(){
   display.drawString(0, 50, ls);
   display.display();
 }
-
-// -----------------------------------------------------------------------------
-// Serial output: code for dealing with serial output for the "Roost!" project
-//  
-#define SERIAL_BAUD 74880               // ESP native speed
-
-void serial_setup(){
-  Serial.begin(SERIAL_BAUD);
-  Serial.println("Roost initializing!");
-}
-
-void serial_roost() {
-  Serial.print("NTP epoch: ");
-  Serial.print(ntp_epoch_in_seconds);
-
-  Serial.print(" \tHumidity: ");
-  Serial.print(h);
-
-  Serial.print(" % \tTemperature: ");
-  Serial.print(t);
-  Serial.print(" *C ");
-  Serial.print(f);
-  Serial.print(" *F");
-
-  Serial.print(" \tHeat index: ");
-  Serial.print(hic);
-  Serial.print(" *C ");
-  Serial.print(hif);
-  Serial.print(" *F\t");
-
-  Serial.print("last motion: ");
-  Serial.println(pir_last_motion);
-}
-
 
 // -----------------------------------------------------------------------------
 // Web output:  code for dealing with internet for the "Roost!" project
@@ -544,6 +543,9 @@ void setup() {
   // Serial for debugging
   serial_setup();
   
+  // WiFi
+  wifi_setup();
+  
   // digital humididy temperature
   dht_setup();
 
@@ -553,9 +555,6 @@ void setup() {
   // OLED
   oled_setup();
  
-  // WiFi
-  wifi_setup();
-
   // NTP time
   ntp_setup();
   
