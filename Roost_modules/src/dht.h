@@ -3,7 +3,7 @@
 //       code for dealing with the DHT11 sensor for the "Roost!" project
 //       requires DHT_sensor_library from Adafruit
 //       assumes Serial is enabled
-//       https://github.com/adafruit/dht-sensor-library
+//       https://github.com/adafruit/DHT-sensor-library
 //
 #include <DHT.h>
 
@@ -20,4 +20,3 @@ DHT dht(DHTPIN, DHTTYPE);
 void dht_clear();
 void dht_setup();
 void dht_read();
-

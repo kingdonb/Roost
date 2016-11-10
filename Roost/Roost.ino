@@ -29,7 +29,7 @@ void led_setup() {
 // blink the led on pin l for d milliseconds
 // -------------------------------------
 void led_blink(int l, int d){
-  // If extra led not specified then use default
+  // If led not specified then use default
   if (l != LED_EXTRA && l != LED_BOTH) { l = LED_DEFAULT; }
 
   // minimum blink is 10 millis
