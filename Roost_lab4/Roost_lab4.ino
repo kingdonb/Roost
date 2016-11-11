@@ -1,7 +1,7 @@
 // =============================================================================
 // File: Roost_lab4.ino
 // Desc: Roost! An open source implementaion of a temperature and motion
-//       monitoring station based on an ESP8266 with DHT11 and HC-SR501 sensors.
+//       monitoring station based on an ESP8266 with DHT22 and HC-SR501 sensors.
 //
 //       This code is in the public domain
 // =============================================================================
