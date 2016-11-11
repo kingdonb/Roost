@@ -1,5 +1,5 @@
 // =============================================================================
-// File: Roost_lab3.ino
+// File: Roost_lab4.ino
 // Desc: Roost! An open source implementaion of a temperature and motion
 //       monitoring station based on an ESP8266 with DHT11 and HC-SR501 sensors.
 //
@@ -195,6 +195,55 @@ void web_setup(){
   Serial.println("HTTP server started");
 }
 
+// -----------------------------------------------------------------------------
+// OLED control: code for dealing with oled for the "Roost!" project
+//               uses library by Daniel Eichhorn downloaded from github
+//               https://github.com/squix78/esp8266-oled-ssd1306
+//
+#include "SSD1306.h"
+#include "SSD1306Brzo.h"
+#include "Liberation_Mono.h"
+
+// Initialize the OLED display using brzo_i2c
+// D2  -> SDA
+// D14 -> SCL
+SSD1306Brzo display(0x3c, 2, 14);
+
+int counter = 0;
+
+// -------------------------------------
+// initialize the oled
+// -------------------------------------
+void oled_setup(){
+  display.init();
+  display.setContrast(255);
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.setFont(Liberation_Mono_10); // 21 characters per line
+
+  display.flipScreenVertically(); // optional, puts the headers at the top of the screen
+  display.drawString(0, 0, "Cock-a-doodle-doo!");
+  display.display();
+}
+
+// -------------------------------------
+// display roost data on the oled
+// -------------------------------------
+void oled_roost(){
+  char ls[22] = {};                     // line string
+  
+  Serial.println("Refreshing OLED");
+  display.clear();
+
+  // ip address on line 1
+  display.drawString(0, 0, wifi_ipaddr);
+
+  // loop counter on line 2
+  sprintf(ls, "Count: %d", counter);
+  display.drawString(0, 20, ls);
+
+  display.display();
+}
+
 // =============================================================================
 void setup() {
 
@@ -209,6 +258,9 @@ void setup() {
 
   // Web
   web_setup();
+
+  // OLED
+  oled_setup();
 }
 
 // =============================================================================
@@ -222,6 +274,10 @@ void loop() {
   led_blink(LED_BOTH, 500);
   delay(500);
 
+  // update the OLED
+  counter++;
+  oled_roost();
+  
   // let the web server do its thing every iteration
   web_server.handleClient();
 }

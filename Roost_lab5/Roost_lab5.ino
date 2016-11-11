@@ -1,6 +1,6 @@
 // =============================================================================
-// File: roost.ino
-// Desc: Roost! An open source implementaion of a temperature and motion 
+// File: Roost_lab5.ino
+// Desc: Roost! An open source implementaion of a temperature and motion
 //       monitoring station based on an ESP8266 with DHT11 and HC-SR501 sensors.
 //
 //       This code is in the public domain
@@ -20,9 +20,9 @@ void led_setup() {
   digitalWrite(LED_DEFAULT, LOW);
   digitalWrite(LED_EXTRA, LOW);
 
-  led_blink(LED_DEFAULT, 500);
-  led_blink(LED_EXTRA, 500);
-  led_blink(LED_BOTH, 500);
+  led_blink(LED_DEFAULT, 50);
+  led_blink(LED_EXTRA, 50);
+  led_blink(LED_BOTH, 50);
 }
 
 // -------------------------------------
@@ -37,20 +37,20 @@ void led_blink(int l, int d){
 
   // maximum blink is 5 seconds
   if (d>5000) { d=5000; }
-  
+
   // blink on
-  if (l == LED_BOTH) { 
+  if (l == LED_BOTH) {
     digitalWrite(LED_DEFAULT, HIGH);
     digitalWrite(LED_EXTRA, HIGH);
   } else {
     digitalWrite(l, HIGH);
   }
-  
+
   // pause ...
   delay(d);
-  
+
   // blink off
-  if (l == LED_BOTH) { 
+  if (l == LED_BOTH) {
     digitalWrite(LED_DEFAULT, LOW);
     digitalWrite(LED_EXTRA, LOW);
   } else {
@@ -61,14 +61,14 @@ void led_blink(int l, int d){
 // -----------------------------------------------------------------------------
 // Wifi Control: code for dealing with WiFi for the "Roost!" project
 //               requires ESP8266 WiFi libraries
-//               https://github.com/esp8266/Arduino
+//               https://github.com/esp8266/Arduino/*
 //
 #include <ESP8266WiFi.h>
 
 // my home network
 // -------------------------------------
-const char* ssid = "Lincoln Manor";
-const char* password = "...---... sos ...---...";
+ const char* ssid = "Lincoln Manor";
+ const char* password = "...---... sos ...---...";
 
 // Notre Dame public WiFi
 // -------------------------------------
@@ -93,7 +93,7 @@ void wifi_format_ip(){
   bytes[3] = (ip >> 24) & 0xFF;
   sprintf(wifi_ipaddr, "%d.%d.%d.%d/roost", bytes[0], bytes[1], bytes[2], bytes[3]);
 }
- 
+
 void wifi_setup(){
   //Fire up the wifi
   WiFi.begin(ssid, password);
@@ -113,59 +113,6 @@ void wifi_setup(){
 
   wifi_format_ip();
   Serial.println(wifi_ipaddr);
-}
-
-// -----------------------------------------------------------------------------
-// DHT11 Control: Digital humididy and temperature sensor
-//       code for dealing with the DHT11 sensor for the "Roost!" project
-//       requires DHT_sensor_library from Adafruit
-//       assumes Serial is enabled
-//       https://github.com/adafruit/dht-sensor-library
-//
-#include <DHT.h>
-
-// put the DHT11 on pin 12
-#define DHTPIN 12
-#define DHTTYPE DHT11
-
-// Digital Humidity Temperature Sensor
-DHT dht(DHTPIN, DHTTYPE);
-
-// Temperature, humidity and heat index variables
-float h,t,f,hic,hif;
-
-void dht_clear(){ h=t=f=hic=hif=0; }
-
-void dht_setup(){ dht_clear(); }
-
-// -------------------------------------
-// take a reading from the DHT11
-// -------------------------------------
-void dht_read() {
-  // shamelessly adapted from DHTtester.ino in Adafruit library examples
-
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  h = dht.readHumidity();
-
-  // Read temperature as Celsius (the default)
-  t = dht.readTemperature();
-
-  // Read temperature as Fahrenheit (isFahrenheit = true)
-  f = dht.readTemperature(true);
-
-  // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) || isnan(f)) {
-    Serial.println("Failed to read from DHT sensor!");
-    h=t=f=hic=hif=0;
-
-  } else {
-    // Compute heat index in Fahrenheit (the default)
-    hif = dht.computeHeatIndex(f, h);
-
-    // Compute heat index in Celsius (isFahreheit = false)
-    hic = dht.computeHeatIndex(t, h, false);
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -218,7 +165,7 @@ void ntp_send_request()
     // or two words, long. First, esxtract the two words:
     unsigned long highWord = word(ntp_packet_buffer[40], ntp_packet_buffer[41]);
     unsigned long lowWord = word(ntp_packet_buffer[42], ntp_packet_buffer[43]);
-
+ 
     // combine the four bytes (two words) into a long integer
     // this is NTP time (seconds since Jan 1 1900):
     unsigned long secsSince1900 = highWord << 16 | lowWord;
@@ -236,11 +183,12 @@ void ntp_send_request()
 
     // UTC is the time at Greenwich Meridian (GMT)
     // print the hour, minute and second:
-    int hh=(ntp_epoch_in_seconds % 86400L) / 3600);
-    int mm=(ntp_epoch_in_seconds % 3600) / 60);
+    int hh=((ntp_epoch_in_seconds % 86400L) / 3600);
+    int mm=((ntp_epoch_in_seconds % 3600) / 60);
     int ss=(ntp_epoch_in_seconds % 60);
     sprintf(ntp_gmt, "%2d:%2d:%2d", hh, mm, ss);
-    Serial.print("The UTC time is %s", ntp_gmt);
+    Serial.print("The UTC time is ");
+    Serial.print(ntp_gmt);
   }
 }
 
@@ -270,43 +218,8 @@ unsigned long ntp_send_packet()
 }
 
 // -----------------------------------------------------------------------------
-// Passive Ifra-Red (PIR) control: code for dealing with the HC-SR501 PIR Motion 
-//                                 sensor for the "Roost!" project
-//
-
-// put the PIR in pin 13
-#define PIRPIN 13
-
-unsigned long pir_last_motion;
-bool pir_motion;
-
-void pir_setup() {
-  pinMode(PIRPIN, INPUT);
-}
-
-// -------------------------------------
-// take a reading from the PIR sensor
-// -------------------------------------
-void pir_chk_motion(){
-  // check for motion
-  if (digitalRead(PIRPIN) == HIGH) {
-    if (! pir_motion) {
-      // something moved
-      led_blink(LED_DEFAULT, 100);
-      pir_motion = true;
-      pir_last_motion = ntp_epoch_in_seconds;
-    }
-  } else {
-    if (pir_motion) {
-      // something stopped moving
-      pir_motion = false;
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
-//  
+//
 #define SERIAL_BAUD 74880               // ESP native speed
 
 void serial_setup(){
@@ -315,97 +228,14 @@ void serial_setup(){
 }
 
 void serial_roost() {
-  Serial.print("NTP epoch: ");
-  Serial.print(ntp_epoch_in_seconds);
+  Serial.println(wifi_ipaddr);
 
-  Serial.print(" \tHumidity: ");
-  Serial.print(h);
-
-  Serial.print(" % \tTemperature: ");
-  Serial.print(t);
-  Serial.print(" *C ");
-  Serial.print(f);
-  Serial.print(" *F");
-
-  Serial.print(" \tHeat index: ");
-  Serial.print(hic);
-  Serial.print(" *C ");
-  Serial.print(hif);
-  Serial.print(" *F\t");
-
-  Serial.print("last motion: ");
-  Serial.println(pir_last_motion);
-}
-
-// -----------------------------------------------------------------------------
-// OLED control: code for dealing with oled for the "Roost!" project
-//               uses library by Daniel Eichhorn downloaded from github
-//               https://github.com/squix78/esp8266-oled-ssd1306
-//
-#include "SSD1306.h"
-#include "SSD1306Brzo.h"
-#include "Liberation_Mono.h"
-// #include "images.h"
-
-// Initialize the OLED display using brzo_i2c
-// D2 -> SDA
-// D14 -> SCL
-SSD1306Brzo display(0x3c, 2, 14);
-
-// -------------------------------------
-// initialize the oled
-// -------------------------------------
-void oled_setup(){
-  display.init();
-  display.setContrast(255);
-  display.setTextAlignment(TEXT_ALIGN_LEFT);
-  display.setFont(Liberation_Mono_10); // 21 characters per line
-
-  display.flipScreenVertically(); // optional, puts the headers at the top of the screen
-  display.drawString(0, 0, "Cock-a-doodle-doo!");
-  display.display();
-}
-
-// -------------------------------------
-// display roost data on the oled
-// -------------------------------------
-void oled_roost(){
-  char hs[6] = "00.00";                 // humidity
-  char ts[6] = "00.00";                 // temp Celsius
-  char fs[6] = "00.00";                 // temp Fahrenheit
-  char ls[22] = {};                     // line string
-
-  Serial.println("refreshing OLED");
-
-  display.clear();
-  display.drawString(0, 0, wifi_ipaddr);
-
-  dtostrf(h, 2, 2, &hs[0]);
-  sprintf(ls,"Humidity %%%s", hs);
-  display.drawString(0, 10, ls);
-
-  dtostrf(t, 2, 2, &ts[0]);
-  dtostrf(f, 2, 2, &fs[0]);
-  sprintf(ls, "Temp c %s f %s", ts, fs);
-  display.drawString(0, 20, ls);
-
-  dtostrf(hic, 2, 2, &ts[0]);
-  dtostrf(hif, 2, 2, &fs[0]);
-  sprintf(ls, "Indx c %s f %s", ts, fs);
-  display.drawString(0, 30, ls);
-
-  sprintf(ls, "NTP Time %s", ntp_gmt);
-  display.drawString(0, 40, ls);
-
-  sprintf(ls, "Motion @ %d", pir_last_motion);
-  display.drawString(0, 50, ls);
-  display.display();
 }
 
 // -----------------------------------------------------------------------------
 // Web output:  code for dealing with internet for the "Roost!" project
 //              requires ESP8266 WiFi libraries
-//              https://github.com/esp8266/Arduino
+//              https://github.com/esp8266/Arduino/*
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
@@ -443,39 +273,10 @@ void web_handle_404(){
   web_blink();
 }
 
-// display roost data on the web
+// display Hello, Roost! on the web
 void web_handle_roost(){
   char x[64] = {};
-  String message = "Roost!\n";
-
-  sprintf(x, "\nNTP Time: %d", ntp_epoch_in_seconds);
-  message += x;
-
-  sprintf(x, "\nLast motion: %d", pir_last_motion);
-  message += x;
-
-  // whoa! Arduino did not implement %f in sprintf
-  // this is one of two workarounds (better because
-  // it handles negative numbers)
-  strcpy(x, "\nHumidity %");
-  dtostrf(h, 2, 2, &x[strlen(x)]);
-  message += x;
-
-  strcpy(x, "\nTemp C: ");
-  dtostrf(t, 2, 2, &x[strlen(x)]);
-  message += x;
-
-  strcpy(x, "\nTemp F: ");
-  dtostrf(f, 2, 2, &x[strlen(x)]);
-  message += x;
-
-  strcpy(x, "\nHeat Index C: ");
-  dtostrf(hic, 2, 2, &x[strlen(x)]);
-  message += x;
-
-  strcpy(x, "\nHeat Index F: ");
-  dtostrf(hif, 2, 2, &x[strlen(x)]);
-  message += x;
+  String message = "Hello, Roost!\n";
 
   web_server.send(200, "text/plain", message);
   web_blink();
@@ -497,92 +298,108 @@ void web_setup(){
 }
 
 // -----------------------------------------------------------------------------
-// IoT output:  code for dealing with Thingspeak for the "Roost!" project
-//              requires Thingspeak libraries
+// OLED control: code for dealing with oled for the "Roost!" project
+//               uses library by Daniel Eichhorn downloaded from github
+//               https://github.com/squix78/esp8266-oled-ssd1306
 //
-#include "ThingSpeak.h"
-unsigned long myChannelNumber = 00000;
-const char * myWriteAPIKey = "xxxxxxxxxxxxxxxxx";
-int thingFoo;
+#include "SSD1306.h"
+#include "SSD1306Brzo.h"
+#include "Liberation_Mono.h"
 
-void iot_setup(){
-    // client from WiFi client
-    WiFiClient  client;
-    ThingSpeak.begin(client);
+// Initialize the OLED display using brzo_i2c
+// D2  -> SDA
+// D14 -> SCL
+SSD1306Brzo display(0x3c, 2, 14);
+
+int counter = 0;
+
+// -------------------------------------
+// initialize the oled
+// -------------------------------------
+void oled_setup(){
+  display.init();
+  display.setContrast(255);
+  display.setTextAlignment(TEXT_ALIGN_LEFT);
+  display.setFont(Liberation_Mono_10); // 21 characters per line
+
+  display.flipScreenVertically(); // optional, puts the headers at the top of the screen
+  display.drawString(0, 0, "Cock-a-doodle-doo!");
+  display.display();
 }
 
-void iot_send_data(){
-    ThingSpeak.setField(1,thingFoo);
-    ThingSpeak.setField(2,thingFoo);
-    ThingSpeak.setField(3,thingFoo);
-    ThingSpeak.setField(4,thingFoo);
-    ThingSpeak.setField(5,thingFoo);
+// -------------------------------------
+// display roost data on the oled
+// -------------------------------------
+void oled_roost(){
+  char ls[22] = {};                     // line string
+  
+  Serial.println("Refreshing OLED");
+  display.clear();
 
-    // Write the fields that you've set all at once.
-    ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  
+  // ip address on line 1
+  display.drawString(0, 0, wifi_ipaddr);
 
-    // delay(20000); // ThingSpeak will only accept updates every 15 seconds.
+  // loop counter on line 2
+  sprintf(ls, "Count: %d", counter);
+  display.drawString(0, 20, ls);
+
+  // time is on line 3
+  sprintf(ls, "GMT: %s", ntp_gmt);
+  display.drawString(0, 30, ls);
+
+  display.display();
 }
-// =============================================================================
+
 // =============================================================================
 void setup() {
 
-  // leds off, please
+  // LEDs off, please
   led_setup();
-  
+
   // Serial for debugging
   serial_setup();
-  
+
   // WiFi
   wifi_setup();
-  
-  // digital humididy temperature
-  dht_setup();
 
-  // PIR
-  pir_setup();
+  // WWW
+  web_setup();
 
   // OLED
   oled_setup();
- 
+
   // NTP
   ntp_setup();
-  
-  // WWW
-  web_setup();
 }
+
 // =============================================================================
 void loop() {
-  static int display_last = 0;
   static int ntp_last = 0;
-  
-  // clear the roost
-  dht_clear();
 
-  // get humidity and temp
-  dht_read();
-
-  // check for motion
-  pir_chk_motion();
-
-  // keep time updated
+  // keep time somewhat synced
   ntp_epoch_in_seconds += (millis() / 1000);
   
-  // update display and serial every 5 seconds
-  if (millis() - display_last > 5000) {
-      display_last = millis();      
-      oled_roost();
-      serial_roost();
-  }
-
   // update time every 60 seconds or when the last request is incomplete
   if ((millis() - ntp_last) > 60000 || (! ntp_packet_received)){
     ntp_last = millis();
     ntp_send_request();
   }
+  
+  led_blink(LED_DEFAULT, 500);
+  delay(500);
 
+  led_blink(LED_EXTRA, 500);
+  delay(500);
+
+  led_blink(LED_BOTH, 500);
+  delay(500);
+
+  // update the OLED
+  counter++;
+  oled_roost();
+  
   // let the web server do its thing every iteration
   web_server.handleClient();
 }
-// =============================================================================
 
+// =============================================================================
