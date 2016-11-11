@@ -9,10 +9,10 @@ This project is to teach basic IoT and microprocessor programming using the Ardu
 Get the IDE and required libraries downloaded and installed from the internet.
 
 Install latest Arduino IDE
->>https://www.arduino.cc/en/Main/Software
+>https://www.arduino.cc/en/Main/Software
 
 Download Roost! Project from github.com
->>https://github.com/DidymusRex/Roost
+>https://github.com/DidymusRex/Roost
 
 Download libraries from github.com (list in Roost! project)
 
