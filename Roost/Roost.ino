@@ -184,10 +184,27 @@ const int NTP_PACKET_SIZE = 48;                 // NTP time stamp is in the firs
 byte ntp_packet_buffer[ NTP_PACKET_SIZE];       // buffer to hold incoming and outgoing packets
 unsigned long ntp_epoch_in_seconds;             // unix time
 bool ntp_packet_received;                       // ntp request state
-char ntp_gmt[9] = "00:00:00";                   // GMT HH:MM:SS
+char* ntp_gmt = "00:00:00";                     // GMT HH:MM:SS
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP udp;
+
+char* ntp_epoch2gmt(unsigned long epoch)
+{
+  char* gmt = "00:00:00";
+  
+  // UTC is the time at Greenwich Meridian (GMT)
+  // print the hour, minute and second:
+  int hh=((ntp_epoch_in_seconds % 86400L) / 3600);
+  int mm=((ntp_epoch_in_seconds % 3600) / 60);
+  int ss=(ntp_epoch_in_seconds % 60);
+    
+  sprintf(gmt, "%2d:%2d:%2d", hh, mm, ss);
+  Serial.print("The UTC time is: ");
+  Serial.println(gmt);
+
+  return(gmt);
+}
 
 void ntp_setup()
 {
@@ -235,14 +252,7 @@ void ntp_send_request()
     // print Unix time:
     Serial.println(ntp_epoch_in_seconds);
 
-    // UTC is the time at Greenwich Meridian (GMT)
-    // print the hour, minute and second:
-    int hh=((ntp_epoch_in_seconds % 86400L) / 3600);
-    int mm=((ntp_epoch_in_seconds % 3600) / 60);
-    int ss=(ntp_epoch_in_seconds % 60);
-    sprintf(ntp_gmt, "%2d:%2d:%2d", hh, mm, ss);
-    Serial.print("The UTC time is: ");
-    Serial.println(ntp_gmt);
+    ntp_gmt = ntp_epoch2gmt(ntp_epoch_in_seconds);
   }
 }
 
@@ -404,8 +414,10 @@ void oled_roost(){
   sprintf(ls, "GMT Time %s", ntp_gmt);
   display.drawString(0, 40, ls);
 
-  sprintf(ls, "Motion @ %d", pir_last_motion);
+  // last motion on line six
+  sprintf(ls, "Motion @ %s", ntp_epoch2gmt(pir_last_motion));
   display.drawString(0, 50, ls);
+  
   display.display();
 }
 
