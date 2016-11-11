@@ -188,7 +188,7 @@ void ntp_send_request()
     int ss=(ntp_epoch_in_seconds % 60);
     sprintf(ntp_gmt, "%2d:%2d:%2d", hh, mm, ss);
     Serial.print("The UTC time is ");
-    Serial.print(ntp_gmt);
+    Serial.println(ntp_gmt);
   }
 }
 
