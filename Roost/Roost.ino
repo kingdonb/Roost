@@ -67,13 +67,13 @@ void led_blink(int l, int d){
 
 // my home network
 // -------------------------------------
-const char* ssid = "Lincoln Manor";
-const char* password = "...---... sos ...---...";
+// const char* ssid = "Lincoln Manor";
+// const char* password = "...---... sos ...---...";
 
 // Notre Dame public WiFi
 // -------------------------------------
-// const char* ssid = "ND-guest";
-// const char* password = "";
+const char* ssid = "ND-guest";
+const char* password = "";
 
 // Roost class network
 // -------------------------------------
@@ -561,17 +561,21 @@ int thingFoo;
 
 void iot_setup(){
     // client from WiFi client
+    Serial.println("IoT client");
+
     WiFiClient  client;
     ThingSpeak.begin(client);
 }
 
 void iot_send_data(){
+    Serial.println("posting to cloud");
+
     ThingSpeak.setField(1,t);
-    ThingSpeak.setField(2,f);
-    ThingSpeak.setField(3,h);
-    ThingSpeak.setField(4,ntp_epoch_in_seconds);
-    ThingSpeak.setField(5,pir_last_motion);
-    ThingSpeak.setField(6,sr_cm);
+    //ThingSpeak.setField(2,f);
+    //ThingSpeak.setField(3,h);
+    //ThingSpeak.setField(4,ntp_epoch_in_seconds);
+    //ThingSpeak.setField(5,pir_last_motion);
+    //ThingSpeak.setField(6,sr_cm);
 
     // Write the fields that you've set all at once.
     ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  
@@ -627,10 +631,10 @@ void loop() {
   pir_chk_motion();
 
   // check proximity every 1 second
-  if (millis() - sr_last > 1000) {
-    sr_last = millis();
-    sr_ping();
-  }
+  //if (millis() - sr_last > 1000) {
+  //  sr_last = millis();
+  //  sr_ping();
+  //}
 
   // update display and serial every 5 seconds
   if (millis() - display_last > 5000) {
