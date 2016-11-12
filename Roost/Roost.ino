@@ -177,33 +177,33 @@ void dht_read() {
 //
 #include <WiFiUdp.h>
 
-unsigned int ntp_local_port = 2390;             // local port to listen for UDP packets
-IPAddress ntp_server_ip;                        // time.nist.gov NTP server address
-const char* ntp_server_name = "time.nist.gov";  //
-const int NTP_PACKET_SIZE = 48;                 // NTP time stamp is in the first 48 bytes of the message
-byte ntp_packet_buffer[ NTP_PACKET_SIZE];       // buffer to hold incoming and outgoing packets
-unsigned long ntp_epoch_in_seconds;             // unix time
-bool ntp_packet_received;                       // ntp request state
-char* ntp_gmt = "00:00:00";                     // GMT HH:MM:SS
+unsigned int  ntp_local_port = 2390;              // local port to listen for UDP packets
+IPAddress     ntp_server_ip;                      // time.nist.gov NTP server address
+const char*   ntp_server_name = "time.nist.gov";  //
+const int     NTP_PACKET_SIZE = 48;               // NTP time stamp is in the first 48 bytes of the message
+byte          ntp_packet_buffer[NTP_PACKET_SIZE]; // buffer to hold incoming and outgoing packets
+long ntp_epoch_in_seconds = 0;                    // unix time
+bool          ntp_packet_received;                // ntp request state
+char*         ntp_hms = "00:00:00";               // HH:MM:SS
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP udp;
 
-char* ntp_epoch2gmt(unsigned long epoch)
+// convert epoch in seconds to HH:MM:SS
+char* ntp_epoch2hms(unsigned long epoch)
 {
-  char* gmt = "00:00:00";
+  char* hms = "00:00:00";
   
-  // UTC is the time at Greenwich Meridian (GMT)
   // print the hour, minute and second:
-  int hh=((ntp_epoch_in_seconds % 86400L) / 3600);
-  int mm=((ntp_epoch_in_seconds % 3600) / 60);
-  int ss=(ntp_epoch_in_seconds % 60);
+  unsigned long hh=((epoch % 86400L) / 3600);
+  unsigned long mm=((epoch % 3600) / 60);
+  unsigned long ss=(epoch % 60);
     
-  sprintf(gmt, "%2d:%2d:%2d", hh, mm, ss);
-  Serial.print("The UTC time is: ");
-  Serial.println(gmt);
+  sprintf(hms, "%02d:%02d:%02d", hh, mm, ss);
+  Serial.print("UDT: ");
+  Serial.println(hms);
 
-  return(gmt);
+  return(hms);
 }
 
 void ntp_setup()
@@ -217,18 +217,24 @@ void ntp_setup()
 void ntp_send_request()
 {
   //get a random server from the pool
-  WiFi.hostByName(ntp_server_name, ntp_server_ip); 
-
-  ntp_send_packet(); // send an NTP packet to a time server
+  WiFi.hostByName(ntp_server_name, ntp_server_ip);
+  
+  // send an NTP packet to a time server
+  ntp_send_packet();
+  
   // wait to see if a reply is available
   delay(1000);
   
   int cb = udp.parsePacket();
   if (!cb) {
+    ntp_packet_received = false;  
     Serial.println("no packet yet");
+    
   } else {
+    ntp_packet_received = true;
     Serial.print("packet received, length=");
     Serial.println(cb);
+    
     // We've received a packet, read the data from it
     udp.read(ntp_packet_buffer, NTP_PACKET_SIZE); // read the packet into the buffer
 
@@ -248,11 +254,11 @@ void ntp_send_request()
     // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
     const unsigned long seventyYears = 2208988800UL;
     // subtract seventy years:
-    unsigned long ntp_epoch_in_seconds = secsSince1900 - seventyYears;
+    ntp_epoch_in_seconds = secsSince1900 - seventyYears;
     // print Unix time:
     Serial.println(ntp_epoch_in_seconds);
-
-    ntp_gmt = ntp_epoch2gmt(ntp_epoch_in_seconds);
+    
+    ntp_hms = ntp_epoch2hms(ntp_epoch_in_seconds);
   }
 }
 
@@ -275,8 +281,9 @@ unsigned long ntp_send_packet()
   ntp_packet_buffer[15]  = 52;
 
   // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:
-  udp.beginPacket(ntp_server_ip, 123); //NTP requests are to port 123
+  // you can send a packet requesting a timestamp
+  // NTP requests are to port 123
+  udp.beginPacket(ntp_server_ip, 123);
   udp.write(ntp_packet_buffer, NTP_PACKET_SIZE);
   udp.endPacket();
 }
@@ -289,7 +296,7 @@ unsigned long ntp_send_packet()
 // put the PIR in pin 13
 #define PIRPIN 13
 
-unsigned long pir_last_motion;
+long pir_last_motion;
 bool pir_motion;
 
 void pir_setup() {
@@ -439,11 +446,11 @@ void oled_roost(){
   display.drawString(0, 30, ls);
 
   // time on line 5
-  sprintf(ls, "GMT Time %s", ntp_gmt);
+  sprintf(ls, "UDT %s", ntp_hms);
   display.drawString(0, 40, ls);
 
   // last motion on line six
-  sprintf(ls, "Motion @ %s", ntp_epoch2gmt(pir_last_motion));
+  sprintf(ls, "Motion @ %s", ntp_epoch2hms(pir_last_motion));
   display.drawString(0, 50, ls);
   
   display.display();
@@ -548,8 +555,8 @@ void web_setup(){
 //              requires Thingspeak libraries
 //
 #include "ThingSpeak.h"
-unsigned long myChannelNumber = 00000;
-const char * myWriteAPIKey = "xxxxxxxxxxxxxxxxx";
+unsigned long myChannelNumber = 171095;
+const char * myWriteAPIKey = "1ON1VL1NL9LBSR06";
 int thingFoo;
 
 void iot_setup(){
@@ -559,16 +566,15 @@ void iot_setup(){
 }
 
 void iot_send_data(){
-    ThingSpeak.setField(1,thingFoo);
-    ThingSpeak.setField(2,thingFoo);
-    ThingSpeak.setField(3,thingFoo);
-    ThingSpeak.setField(4,thingFoo);
-    ThingSpeak.setField(5,thingFoo);
+    ThingSpeak.setField(1,t);
+    ThingSpeak.setField(2,f);
+    ThingSpeak.setField(3,h);
+    ThingSpeak.setField(4,ntp_epoch_in_seconds);
+    ThingSpeak.setField(5,pir_last_motion);
+    ThingSpeak.setField(6,sr_cm);
 
     // Write the fields that you've set all at once.
     ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);  
-
-    // delay(20000); // ThingSpeak will only accept updates every 15 seconds.
 }
 // =============================================================================
 // =============================================================================

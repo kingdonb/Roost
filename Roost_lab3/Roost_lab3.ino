@@ -64,7 +64,7 @@ void led_blink(int l, int d){
 // -----------------------------------------------------------------------------
 // Wifi Control: code for dealing with WiFi for the "Roost!" project
 //               requires ESP8266 WiFi libraries
-//               https://github.com/esp8266/Arduino/*
+//               https://github.com/esp8266/Arduino
 //
 #include <ESP8266WiFi.h>
 
