@@ -68,15 +68,10 @@ void led_blink(int l, int d){
 //
 #include <ESP8266WiFi.h>
 
-// my home network
-// -------------------------------------
- const char* ssid = "Lincoln Manor";
- const char* password = "...---... sos ...---...";
-
 // Notre Dame public WiFi
 // -------------------------------------
-// const char* ssid = "ND-guest";
-// const char* password = "";
+const char* ssid = "ND-guest";
+const char* password = "";
 
 // Roost class network
 // -------------------------------------
