@@ -1,5 +1,5 @@
 // =============================================================================
-// File: Roost_lab6.ino
+// File: Roost_lab8.ino
 // Desc: Roost! An open source implementaion of a temperature and motion
 //       monitoring station based on an ESP8266 with DHT22 and HC-SR501 sensors.
 //
@@ -285,6 +285,41 @@ unsigned long ntp_send_packet()
 }
 
 // -----------------------------------------------------------------------------
+// Passive Ifra-Red (PIR) control: code for dealing with the HC-SR501 PIR Motion 
+//                                 sensor for the "Roost!" project
+//
+
+// put the PIR in pin 13
+#define PIRPIN 13
+
+unsigned long pir_last_motion;
+bool pir_motion;
+
+void pir_setup() {
+  pinMode(PIRPIN, INPUT);
+}
+
+// -------------------------------------
+// take a reading from the PIR sensor
+// -------------------------------------
+void pir_chk_motion(){
+  // check for motion
+  if (digitalRead(PIRPIN) == HIGH) {
+    if (! pir_motion) {
+      // something moved
+      led_blink(LED_DEFAULT, 100);
+      pir_motion = true;
+      pir_last_motion = ntp_epoch_in_seconds;
+    }
+  } else {
+    if (pir_motion) {
+      // something stopped moving
+      pir_motion = false;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
 //
 #define SERIAL_BAUD 74880               // ESP native speed
@@ -430,6 +465,10 @@ void oled_roost(){
   sprintf(ls, "GMT Time %s", ntp_gmt);
   display.drawString(0, 40, ls);
 
+  // last motion on line six
+  sprintf(ls, "Motion @ %s", ntp_epoch2gmt(pir_last_motion));
+  display.drawString(0, 50, ls);
+  
   display.display();
 }
 
@@ -451,6 +490,9 @@ void setup() {
   // WWW
   web_setup();
 
+  // PIR
+  pir_setup();
+  
   // OLED
   oled_setup();
 
@@ -476,6 +518,9 @@ void loop() {
 
   // get humidity and temp
   dht_read();
+  
+  // check for motion
+  pir_chk_motion();
   
   led_blink(LED_DEFAULT, 500);
   delay(500);

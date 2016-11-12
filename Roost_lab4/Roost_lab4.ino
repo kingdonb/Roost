@@ -17,6 +17,9 @@
 #define LED_BOTH -1
 
 void led_setup() {
+  pinMode(LED_DEFAULT, OUTPUT);
+  pinMode(LED_EXTRA, OUTPUT);
+
   digitalWrite(LED_DEFAULT, LOW);
   digitalWrite(LED_EXTRA, LOW);
 

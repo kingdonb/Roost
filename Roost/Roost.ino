@@ -317,6 +317,34 @@ void pir_chk_motion(){
 }
 
 // -----------------------------------------------------------------------------
+// SR04 Control: Ultrasonic distance sensor sensor
+//       code for dealing with the SR04 sensor for the "Roost!" project
+//       NOTE: speed of sound is 29.14 usec per centimeter
+//
+#define sr_trig 14
+#define sr_echo 16
+long sr_cm;
+
+void sr_setup() {
+  pinMode(sr_trig, OUTPUT);
+  pinMode(sr_echo, INPUT);
+
+}
+
+void sr_ping(){
+  // trigger a ping with a 2 usec pulse
+  digitalWrite(sr_trig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(sr_trig, HIGH);
+  
+  delayMicroseconds(10);
+  digitalWrite(sr_trig, LOW);
+  
+  int usec = pulseIn(sr_echo, HIGH);
+  sr_cm = (usec/2) / 29.1;
+}
+
+// -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
 //  
 #define SERIAL_BAUD 74880               // ESP native speed
@@ -561,6 +589,9 @@ void setup() {
   // PIR
   pir_setup();
 
+  // SR04
+  sr_setup();
+
   // OLED
   oled_setup();
  
@@ -569,11 +600,16 @@ void setup() {
   
   // WWW
   web_setup();
+
+  // IoT
+  iot_setup();
 }
 // =============================================================================
 void loop() {
   static int display_last = 0;
   static int ntp_last = 0;
+  static int iot_last = 0;
+  static int sr_last = 0;
   
   // clear the roost
   dht_clear();
@@ -584,9 +620,12 @@ void loop() {
   // check for motion
   pir_chk_motion();
 
-  // keep time updated
-  ntp_epoch_in_seconds += (millis() / 1000);
-  
+  // check proximity every 1 second
+  if (millis() - sr_last > 1000) {
+    sr_last = millis();
+    sr_ping();
+  }
+
   // update display and serial every 5 seconds
   if (millis() - display_last > 5000) {
       display_last = millis();      
@@ -594,12 +633,22 @@ void loop() {
       serial_roost();
   }
 
-  // update time every 60 seconds or when the last request is incomplete
+  // update NTP time every 60 seconds or when the last request is incomplete
+  // otherwise keep epoch up to date with internal clock
   if ((millis() - ntp_last) > 60000 || (! ntp_packet_received)){
     ntp_last = millis();
     ntp_send_request();
+  } else {
+    // this is not right. Need ntp_usec_interval.
+    ntp_epoch_in_seconds = (ntp_last + millis()) / 1000;
   }
 
+  // send data to cloud every 60 seconds
+  if ((millis() - iot_last) > 60000){
+    iot_last = millis();
+    iot_send_data();
+  }
+  
   // let the web server do its thing every iteration
   web_server.handleClient();
 }
