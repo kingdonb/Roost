@@ -1,13 +1,15 @@
 // =============================================================================
-// File: Roost_lab1.ino
-// Desc: Roost! An open source implementaion of a temperature and motion
-//       monitoring station based on an ESP8266 with DHT22 and HC-SR501 sensors.
+// File: Roost_lab1.ino LED's
+// Desc: Roost! An open source implementaion of a temperature and motion 
+//       monitoring station based on an ESP8266 with temperature, humidity,
+//       motion and distance sensors.
 //
 //       This code is in the public domain
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 // LED control:  code for dealing with the LEDs for the "Roost!" project
+//
 
 // default led on pin 5 (also onboard led)
 #define LED_DEFAULT 5
