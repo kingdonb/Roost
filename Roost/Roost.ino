@@ -108,10 +108,9 @@ void wifi_setup(){
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
-  Serial.print(" network on IP address: ");
-  Serial.println(WiFi.localIP());
 
   wifi_format_ip();
+  Serial.print(" network on IP address: ");
   Serial.println(wifi_ipaddr);
 }
 
@@ -377,6 +376,10 @@ void serial_setup(){
 
 void serial_roost() {
   Serial.println("------------------------------");
+  
+  Serial.print("WiFi address: ");
+  Serial.println(wifi_ipaddr);
+  
   Serial.print("current epoch: ");
   Serial.println(ntp_epoch_in_seconds);
 
@@ -493,9 +496,9 @@ ESP8266WebServer web_server(80);
 
 // web blink pattern
 void web_blink(){
-  led_blink(LED_EXTRA, 10);
+  led_blink(LED_DEFAULT, 10);
   delay(50); 
-  led_blink(LED_EXTRA, 10);
+  led_blink(LED_DEFAULT, 10);
 }
 
 // root web page

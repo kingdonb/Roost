@@ -1,13 +1,15 @@
 // =============================================================================
-// File: Roost_lab4.ino
-// Desc: Roost! An open source implementaion of a temperature and motion
-//       monitoring station based on an ESP8266 with DHT22 and HC-SR501 sensors.
+// File: Roost_lab4.ino LEDs, serial, basic Wifi, web output, OLED screen, millis
+// Desc: Roost! An open source implementaion of a temperature and motion 
+//       monitoring station based on an ESP8266 with temperature, humidity,
+//       motion and distance sensors.
 //
 //       This code is in the public domain
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 // LED control:  code for dealing with the LEDs for the "Roost!" project
+//
 
 // default led on pin 5 (also onboard led)
 #define LED_DEFAULT 5
@@ -40,20 +42,20 @@ void led_blink(int l, int d){
 
   // maximum blink is 5 seconds
   if (d>5000) { d=5000; }
-
+  
   // blink on
-  if (l == LED_BOTH) {
+  if (l == LED_BOTH) { 
     digitalWrite(LED_DEFAULT, HIGH);
     digitalWrite(LED_EXTRA, HIGH);
   } else {
     digitalWrite(l, HIGH);
   }
-
+  
   // pause ...
   delay(d);
-
+  
   // blink off
-  if (l == LED_BOTH) {
+  if (l == LED_BOTH) { 
     digitalWrite(LED_DEFAULT, LOW);
     digitalWrite(LED_EXTRA, LOW);
   } else {
@@ -64,19 +66,19 @@ void led_blink(int l, int d){
 // -----------------------------------------------------------------------------
 // Wifi Control: code for dealing with WiFi for the "Roost!" project
 //               requires ESP8266 WiFi libraries
-//               https://github.com/esp8266/Arduino/*
+//               https://github.com/esp8266/Arduino
 //
 #include <ESP8266WiFi.h>
 
 // Notre Dame public WiFi
 // -------------------------------------
-const char* ssid = "ND-guest";
-const char* password = "";
+// const char* ssid = "ND-guest";
+// const char* password = "";
 
 // Roost class network
 // -------------------------------------
-// const char* ssid = "XXXXXXXXXX";
-// const char* password = "XXXXXXXXXX";
+  const char* ssid = "Lincoln Manor";
+  const char* password = "...---... sos ...---...";
 
 char wifi_ipaddr[21] = {};
 
@@ -89,9 +91,9 @@ void wifi_format_ip(){
   bytes[1] = (ip >> 8) & 0xFF;
   bytes[2] = (ip >> 16) & 0xFF;
   bytes[3] = (ip >> 24) & 0xFF;
-  sprintf(wifi_ipaddr, "%d.%d.%d.%d/roost", bytes[0], bytes[1], bytes[2], bytes[3]);
+  sprintf(wifi_ipaddr, "IP %d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
 }
-
+ 
 void wifi_setup(){
   //Fire up the wifi
   WiFi.begin(ssid, password);
@@ -106,17 +108,18 @@ void wifi_setup(){
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
-  Serial.print(" network on IP address: ");
-  Serial.println(WiFi.localIP());
 
   wifi_format_ip();
+  Serial.print(" network on IP address: ");
   Serial.println(wifi_ipaddr);
 }
 
 // -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
-//
-#define SERIAL_BAUD 74880               // ESP native speed
+//  
+
+// ESP native speed
+#define SERIAL_BAUD 74880
 
 void serial_setup(){
   Serial.begin(SERIAL_BAUD);
@@ -124,14 +127,19 @@ void serial_setup(){
 }
 
 void serial_roost() {
+  Serial.println("------------------------------");
+  
+  Serial.print("WiFi address: ");
   Serial.println(wifi_ipaddr);
-
+  
+  Serial.println("------------------------------");
 }
 
 // -----------------------------------------------------------------------------
 // Web output:  code for dealing with internet for the "Roost!" project
 //              requires ESP8266 WiFi libraries
-//              https://github.com/esp8266/Arduino/*
+//              https://github.com/esp8266/Arduino
+//
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
@@ -140,9 +148,9 @@ ESP8266WebServer web_server(80);
 
 // web blink pattern
 void web_blink(){
-  led_blink(LED_EXTRA, 10);
+  led_blink(LED_DEFAULT, 10);
   delay(50); 
-  led_blink(LED_EXTRA, 10);
+  led_blink(LED_DEFAULT, 10);
 }
 
 // root web page
@@ -169,10 +177,10 @@ void web_handle_404(){
   web_blink();
 }
 
-// display Hello, Roost! on the web
+// display roost data on the web
 void web_handle_roost(){
   char x[64] = {};
-  String message = "Hello, Roost!\n";
+  String message = "Roost!\n";
 
   web_server.send(200, "text/plain", message);
   web_blink();
@@ -201,12 +209,12 @@ void web_setup(){
 #include "SSD1306.h"
 #include "SSD1306Brzo.h"
 #include "Liberation_Mono.h"
+// #include "images.h"
 
 // Initialize the OLED display using brzo_i2c
-// D2  -> SDA
+// D2 -> SDA
 // D14 -> SCL
 SSD1306Brzo display(0x3c, 2, 14);
-
 int counter = 0;
 
 // -------------------------------------
@@ -228,17 +236,18 @@ void oled_setup(){
 // -------------------------------------
 void oled_roost(){
   char ls[22] = {};                     // line string
-  
-  Serial.println("Refreshing OLED");
-  display.clear();
 
+  Serial.println("refreshing OLED");
+
+  display.clear();
+  
   // ip address on line 1
   display.drawString(0, 0, wifi_ipaddr);
-
+  
   // loop counter on line 2
   sprintf(ls, "Count: %d", counter);
   display.drawString(0, 20, ls);
-
+  
   display.display();
 }
 
@@ -263,18 +272,16 @@ void setup() {
 
 // =============================================================================
 void loop() {
-  led_blink(LED_DEFAULT, 500);
-  delay(500);
+  static int display_last = 0;
 
-  led_blink(LED_EXTRA, 500);
-  delay(500);
+  // update display and serial every 5 seconds
+  if (millis() - display_last > 5000) {
+      display_last = millis();
 
-  led_blink(LED_BOTH, 500);
-  delay(500);
-
-  // update the OLED
-  counter++;
-  oled_roost();
+      counter++;
+      oled_roost();
+      serial_roost();
+  }
   
   // let the web server do its thing every iteration
   web_server.handleClient();
