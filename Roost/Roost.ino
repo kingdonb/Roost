@@ -383,7 +383,7 @@ void serial_roost() {
   Serial.print("current epoch: ");
   Serial.println(ntp_epoch_in_seconds);
 
-  Serial.print("GMT ");
+  Serial.print("GMT: ");
   Serial.println(ntp_hms);
   
   Serial.print("Humidity %");
@@ -407,7 +407,6 @@ void serial_roost() {
   Serial.print("last distance: ");
   Serial.println(sr_cm);
   Serial.println("------------------------------");
-
 }
 
 // -----------------------------------------------------------------------------

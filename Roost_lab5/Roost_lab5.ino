@@ -1,13 +1,15 @@
 // =============================================================================
-// File: Roost_lab5.ino
-// Desc: Roost! An open source implementaion of a temperature and motion
-//       monitoring station based on an ESP8266 with DHT22 and HC-SR501 sensors.
+// File: Roost_lab5.ino LEDs, serial, basic Wifi, web output, OLED screen, NTP
+// Desc: Roost! An open source implementaion of a temperature and motion 
+//       monitoring station based on an ESP8266 with temperature, humidity,
+//       motion and distance sensors.
 //
 //       This code is in the public domain
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 // LED control:  code for dealing with the LEDs for the "Roost!" project
+//
 
 // default led on pin 5 (also onboard led)
 #define LED_DEFAULT 5
@@ -40,20 +42,20 @@ void led_blink(int l, int d){
 
   // maximum blink is 5 seconds
   if (d>5000) { d=5000; }
-
+  
   // blink on
-  if (l == LED_BOTH) {
+  if (l == LED_BOTH) { 
     digitalWrite(LED_DEFAULT, HIGH);
     digitalWrite(LED_EXTRA, HIGH);
   } else {
     digitalWrite(l, HIGH);
   }
-
+  
   // pause ...
   delay(d);
-
+  
   // blink off
-  if (l == LED_BOTH) {
+  if (l == LED_BOTH) { 
     digitalWrite(LED_DEFAULT, LOW);
     digitalWrite(LED_EXTRA, LOW);
   } else {
@@ -64,19 +66,19 @@ void led_blink(int l, int d){
 // -----------------------------------------------------------------------------
 // Wifi Control: code for dealing with WiFi for the "Roost!" project
 //               requires ESP8266 WiFi libraries
-//               https://github.com/esp8266/Arduino/*
+//               https://github.com/esp8266/Arduino
 //
 #include <ESP8266WiFi.h>
 
 // Notre Dame public WiFi
 // -------------------------------------
-const char* ssid = "ND-guest";
-const char* password = "";
+// const char* ssid = "ND-guest";
+// const char* password = "";
 
 // Roost class network
 // -------------------------------------
-// const char* ssid = "XXXXXXXXXX";
-// const char* password = "XXXXXXXXXX";
+  const char* ssid = "Lincoln Manor";
+  const char* password = "...---... sos ...---...";
 
 char wifi_ipaddr[21] = {};
 
@@ -89,9 +91,9 @@ void wifi_format_ip(){
   bytes[1] = (ip >> 8) & 0xFF;
   bytes[2] = (ip >> 16) & 0xFF;
   bytes[3] = (ip >> 24) & 0xFF;
-  sprintf(wifi_ipaddr, "%d.%d.%d.%d/roost", bytes[0], bytes[1], bytes[2], bytes[3]);
+  sprintf(wifi_ipaddr, "IP %d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
 }
-
+ 
 void wifi_setup(){
   //Fire up the wifi
   WiFi.begin(ssid, password);
@@ -106,10 +108,9 @@ void wifi_setup(){
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
-  Serial.print(" network on IP address: ");
-  Serial.println(WiFi.localIP());
 
   wifi_format_ip();
+  Serial.print(" network on IP address: ");
   Serial.println(wifi_ipaddr);
 }
 
@@ -127,7 +128,9 @@ const char*   ntp_server_name = "time.nist.gov";  //
 const int     NTP_PACKET_SIZE = 48;               // NTP time stamp is in the first 48 bytes of the message
 byte          ntp_packet_buffer[NTP_PACKET_SIZE]; // buffer to hold incoming and outgoing packets
 long          ntp_epoch_in_seconds = 0;           // unix time
-bool          ntp_packet_received;                // ntp request state
+long          ntp_received_epoch = 0;             // unix time upon last receive from NTP server
+long          ntp_received_millis = 0;            // millis() upon last receive from NTP server
+bool          ntp_packet_received = false;        // ntp request state
 char*         ntp_hms = "00:00:00";               // HH:MM:SS
 
 // A UDP instance to let us send and receive packets over UDP
@@ -144,9 +147,6 @@ char* ntp_epoch2hms(unsigned long epoch)
   unsigned long ss=(epoch % 60);
     
   sprintf(hms, "%02d:%02d:%02d", hh, mm, ss);
-  Serial.print("UDT: ");
-  Serial.println(hms);
-
   return(hms);
 }
 
@@ -160,29 +160,29 @@ void ntp_setup()
 
 void ntp_send_request()
 {
-  //get a random server from the pool
+  // get a random server from the pool
   WiFi.hostByName(ntp_server_name, ntp_server_ip);
   
   // send an NTP packet to a time server
   ntp_send_packet();
-  
-  // wait to see if a reply is available
-  delay(1000);
-  
+}
+
+void ntp_read_response()
+{
   int cb = udp.parsePacket();
   if (!cb) {
     ntp_packet_received = false;  
-    Serial.println("no packet yet");
+    // Serial.println("NTP no packet yet");
     
   } else {
     ntp_packet_received = true;
-    Serial.print("packet received, length=");
+    Serial.print("NTP packet received, length=");
     Serial.println(cb);
     
     // We've received a packet, read the data from it
     udp.read(ntp_packet_buffer, NTP_PACKET_SIZE); // read the packet into the buffer
 
-    //the timestamp starts at byte 40 of the received packet and is four bytes,
+    // the timestamp starts at byte 40 of the received packet and is four bytes,
     // or two words, long. First, esxtract the two words:
     unsigned long highWord = word(ntp_packet_buffer[40], ntp_packet_buffer[41]);
     unsigned long lowWord = word(ntp_packet_buffer[42], ntp_packet_buffer[43]);
@@ -199,9 +199,14 @@ void ntp_send_request()
     const unsigned long seventyYears = 2208988800UL;
     // subtract seventy years:
     ntp_epoch_in_seconds = secsSince1900 - seventyYears;
+
+    // hold on to epoch and processor time at NTP receive
+    ntp_received_epoch = ntp_epoch_in_seconds;
+    ntp_received_millis = millis();
+
     // print Unix time:
     Serial.println(ntp_epoch_in_seconds);
-    
+    led_blink(LED_BOTH, 100);
     ntp_hms = ntp_epoch2hms(ntp_epoch_in_seconds);
   }
 }
@@ -209,15 +214,15 @@ void ntp_send_request()
 // send an NTP request to the time server at the given address
 unsigned long ntp_send_packet()
 {
-  Serial.println("sending NTP packet...");
+  Serial.println("NTP packet sent...");
   // set all bytes in the buffer to 0
   memset(ntp_packet_buffer, 0, NTP_PACKET_SIZE);
+  
   // Initialize values needed to form NTP request
-  // (see URL above for details on the packets)
   ntp_packet_buffer[0] = 0b11100011;   // LI, Version, Mode
-  ntp_packet_buffer[1] = 0;     // Stratum, or type of clock
-  ntp_packet_buffer[2] = 6;     // Polling Interval
-  ntp_packet_buffer[3] = 0xEC;  // Peer Clock Precision
+  ntp_packet_buffer[1] = 0;            // Stratum, or type of clock
+  ntp_packet_buffer[2] = 6;            // Polling Interval
+  ntp_packet_buffer[3] = 0xEC;         // Peer Clock Precision
   // 8 bytes of zero for Root Delay & Root Dispersion
   ntp_packet_buffer[12]  = 49;
   ntp_packet_buffer[13]  = 0x4E;
@@ -234,8 +239,10 @@ unsigned long ntp_send_packet()
 
 // -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
-//
-#define SERIAL_BAUD 74880               // ESP native speed
+//  
+
+// ESP native speed
+#define SERIAL_BAUD 74880
 
 void serial_setup(){
   Serial.begin(SERIAL_BAUD);
@@ -243,14 +250,25 @@ void serial_setup(){
 }
 
 void serial_roost() {
+  Serial.println("------------------------------");
+  
+  Serial.print("WiFi address: ");
   Serial.println(wifi_ipaddr);
+  
+  Serial.print("current epoch: ");
+  Serial.println(ntp_epoch_in_seconds);
 
+  Serial.print("GMT: ");
+  Serial.println(ntp_hms);
+  
+  Serial.println("------------------------------");
 }
 
 // -----------------------------------------------------------------------------
 // Web output:  code for dealing with internet for the "Roost!" project
 //              requires ESP8266 WiFi libraries
-//              https://github.com/esp8266/Arduino/*
+//              https://github.com/esp8266/Arduino
+//
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
@@ -259,9 +277,9 @@ ESP8266WebServer web_server(80);
 
 // web blink pattern
 void web_blink(){
-  led_blink(LED_EXTRA, 10);
+  led_blink(LED_DEFAULT, 10);
   delay(50); 
-  led_blink(LED_EXTRA, 10);
+  led_blink(LED_DEFAULT, 10);
 }
 
 // root web page
@@ -288,10 +306,17 @@ void web_handle_404(){
   web_blink();
 }
 
-// display Hello, Roost! on the web
+// display roost data on the web
 void web_handle_roost(){
   char x[64] = {};
-  String message = "Hello, Roost!\n";
+  String message = "Roost!\n";
+
+  sprintf(x, "\nCurrent epoch: %d", ntp_epoch_in_seconds);
+  message += x;
+
+  // GMT
+  message += "\nGMT: ";
+  message += ntp_hms;
 
   web_server.send(200, "text/plain", message);
   web_blink();
@@ -320,12 +345,12 @@ void web_setup(){
 #include "SSD1306.h"
 #include "SSD1306Brzo.h"
 #include "Liberation_Mono.h"
+// #include "images.h"
 
 // Initialize the OLED display using brzo_i2c
-// D2  -> SDA
+// D2 -> SDA
 // D14 -> SCL
 SSD1306Brzo display(0x3c, 2, 14);
-
 int counter = 0;
 
 // -------------------------------------
@@ -347,21 +372,17 @@ void oled_setup(){
 // -------------------------------------
 void oled_roost(){
   char ls[22] = {};                     // line string
-  
-  Serial.println("Refreshing OLED");
-  display.clear();
 
+  Serial.println("refreshing OLED");
+
+  display.clear();
+  
   // ip address on line 1
   display.drawString(0, 0, wifi_ipaddr);
 
-  // loop counter on line 2
-  sprintf(ls, "Count: %d", counter);
-  display.drawString(0, 20, ls);
-
-  // time is on line 3
-  sprintf(ls, "UDT: %s", ntp_hms);
-  display.drawString(0, 30, ls);
-
+  // time on line 1
+  sprintf(ls, "GMT %s", ntp_hms);
+  display.drawString(0, 10, ls);
   display.display();
 }
 
@@ -389,27 +410,31 @@ void setup() {
 
 // =============================================================================
 void loop() {
+  static unsigned long display_last = 0;
   static unsigned long ntp_last = 0;
+  
+  // update display and serial every 5 seconds
+  if (millis() - display_last > 5000) {
+      display_last = millis();
+
+      counter++;
+      oled_roost();
+      serial_roost();
+  }
+
+  // check for ntp response if not received
+  if (! ntp_packet_received){ ntp_read_response(); };
+  
+  // keep time updated, last epoch received plus usec since last epoch received / 1000
+  ntp_epoch_in_seconds = ntp_received_epoch + floor((millis() - ntp_received_millis) / 1000);
+  ntp_hms = ntp_epoch2hms(ntp_epoch_in_seconds);
 
   // update time every 60 seconds or when the last request is incomplete
   if ((millis() - ntp_last) > 60000 || (! ntp_packet_received)){
     ntp_last = millis();
     ntp_send_request();
   }
-  
-  led_blink(LED_DEFAULT, 500);
-  delay(500);
 
-  led_blink(LED_EXTRA, 500);
-  delay(500);
-
-  led_blink(LED_BOTH, 500);
-  delay(500);
-
-  // update the OLED
-  counter++;
-  oled_roost();
-  
   // let the web server do its thing every iteration
   web_server.handleClient();
 }
