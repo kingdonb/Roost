@@ -143,7 +143,8 @@ void dht_setup(){ dht_clear(); }
 // -------------------------------------
 void dht_read() {
   // shamelessly adapted from DHTtester.ino in Adafruit library examples
-
+  dht_clear();
+  
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   h = dht.readHumidity();
@@ -156,7 +157,7 @@ void dht_read() {
 
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t) || isnan(f)) {
-    // Serial.println("Failed to read from DHT sensor!");
+    // Failed to read from DHT sensor
     led_blink(LED_DEFAULT, 50);
     h=t=f=hic=hif=0;
 
@@ -386,14 +387,14 @@ void serial_roost() {
   Serial.print("GMT: ");
   Serial.println(ntp_hms);
   
-  Serial.print("Humidity %");
-  Serial.println(h);
-
   Serial.print("Temperature: ");
   Serial.print(t);
   Serial.print(" *C ");
   Serial.print(f);
   Serial.println(" *F");
+  
+  Serial.print("Humidity %");
+  Serial.println(h);
 
   Serial.print("Heat index: ");
   Serial.print(hic);
@@ -454,19 +455,19 @@ void oled_roost(){
   // ip address on line 1
   display.drawString(0, 0, wifi_ipaddr);
 
-  // time on line 1
+  // time on line 2
   sprintf(ls, "GMT %s", ntp_hms);
   display.drawString(0, 10, ls);
   
-  // humidity on line 3
-  dtostrf(h, 2, 2, &hs[0]);
-  sprintf(ls,"Humidity %%%s", hs);
-  display.drawString(0, 20, ls);
-
-  // temperature on line 4
+  // temperature on line 2
   dtostrf(t, 2, 2, &ts[0]);
   dtostrf(f, 2, 2, &fs[0]);
   sprintf(ls, "Temp c %s f %s", ts, fs);
+  display.drawString(0, 20, ls);
+  
+  // humidity on line 4
+  dtostrf(h, 2, 2, &hs[0]);
+  sprintf(ls,"Humidity %%%s", hs);
   display.drawString(0, 30, ls);
 
   // heat index on line 5
@@ -542,16 +543,16 @@ void web_handle_roost(){
   // whoa! Arduino did not implement %f in sprintf
   // this is one of two workarounds (better because
   // it handles negative numbers)
-  strcpy(x, "\nHumidity %");
-  dtostrf(h, 2, 2, &x[strlen(x)]);
-  message += x;
-
   strcpy(x, "\nTemp C: ");
   dtostrf(t, 2, 2, &x[strlen(x)]);
   message += x;
 
   strcpy(x, "\nTemp F: ");
   dtostrf(f, 2, 2, &x[strlen(x)]);
+  message += x;
+  
+  strcpy(x, "\nHumidity %");
+  dtostrf(h, 2, 2, &x[strlen(x)]);
   message += x;
 
   strcpy(x, "\nHeat Index C: ");
