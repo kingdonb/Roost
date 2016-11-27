@@ -3,6 +3,12 @@
 //                                 sensor for the "Roost!" project
 //
 
+// put the PIR in pin 13
+#define PIRPIN 13
+
+long pir_last_motion = 0;
+bool pir_motion = false;
+
 void pir_setup() {
   pinMode(PIRPIN, INPUT);
 }
@@ -15,7 +21,7 @@ void pir_chk_motion(){
   if (digitalRead(PIRPIN) == HIGH) {
     if (! pir_motion) {
       // something moved
-      led_blink(LED_DEFAULT, 100);
+      led_blink(LED_BOTH, 100);
       pir_motion = true;
       pir_last_motion = ntp_epoch_in_seconds;
     }
@@ -26,4 +32,3 @@ void pir_chk_motion(){
     }
   }
 }
-

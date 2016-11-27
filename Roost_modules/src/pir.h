@@ -6,9 +6,8 @@
 // put the PIR in pin 13
 #define PIRPIN 13
 
-unsigned long pir_last_motion;
-bool pir_motion;
+long pir_last_motion = 0;
+bool pir_motion = false;
 
 void pir_setup();
 void pir_chk_motion();
-

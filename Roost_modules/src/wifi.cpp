@@ -1,8 +1,21 @@
 // -----------------------------------------------------------------------------
 // Wifi Control: code for dealing with WiFi for the "Roost!" project
 //               requires ESP8266 WiFi libraries
-//               https://github.com/esp8266/Arduino/*
+//               https://github.com/esp8266/Arduino
 //
+#include <ESP8266WiFi.h>
+
+// Notre Dame public WiFi
+// -------------------------------------
+// const char* ssid = "ND-guest";
+// const char* password = "";
+
+// Roost class network
+// -------------------------------------
+const char* ssid = "Lincoln Manor";
+const char* password = "...---... sos ...---...";
+
+char wifi_ipaddr[21] = {};
 
 // convert int to dotted quad. thanks stackoverflow.com
 void wifi_format_ip(){
@@ -13,7 +26,7 @@ void wifi_format_ip(){
   bytes[1] = (ip >> 8) & 0xFF;
   bytes[2] = (ip >> 16) & 0xFF;
   bytes[3] = (ip >> 24) & 0xFF;
-  sprintf(wifi_ipaddr, "%d.%d.%d.%d/roost", bytes[0], bytes[1], bytes[2], bytes[3]);
+  sprintf(wifi_ipaddr, "IP %d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
 }
 
 void wifi_setup(){
@@ -30,10 +43,8 @@ void wifi_setup(){
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
-  Serial.print(" network on IP address: ");
-  Serial.println(WiFi.localIP());
 
   wifi_format_ip();
+  Serial.print(" network on IP address: ");
   Serial.println(wifi_ipaddr);
 }
-

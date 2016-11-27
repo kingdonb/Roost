@@ -5,11 +5,6 @@
 //
 #include <ESP8266WiFi.h>
 
-// my home network
-// -------------------------------------
-const char* ssid = "Lincoln Manor";
-const char* password = "...---... sos ...---...";
-
 // Notre Dame public WiFi
 // -------------------------------------
 // const char* ssid = "ND-guest";
@@ -17,11 +12,11 @@ const char* password = "...---... sos ...---...";
 
 // Roost class network
 // -------------------------------------
-// const char* ssid = "XXXXXXXXXX";
-// const char* password = "XXXXXXXXXX";
+const char* ssid = "Lincoln Manor";
+const char* password = "...---... sos ...---...";
 
 char wifi_ipaddr[21] = {};
 
+// convert int to dotted quad. thanks stackoverflow.com
 void wifi_format_ip();
 void wifi_setup();
-

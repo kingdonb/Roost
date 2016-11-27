@@ -3,6 +3,15 @@
 //               uses library by Daniel Eichhorn downloaded from github
 //               https://github.com/squix78/esp8266-oled-ssd1306
 //
+#include "SSD1306.h"
+#include "SSD1306Brzo.h"
+#include "Liberation_Mono.h"
+// #include "images.h"
+
+// Initialize the OLED display using brzo_i2c
+// D2 -> SDA
+// D14 -> SCL
+SSD1306Brzo display(0x3c, 2, 14);
 
 // -------------------------------------
 // initialize the oled
@@ -15,7 +24,6 @@ void oled_setup(){
 
   display.flipScreenVertically(); // optional, puts the headers at the top of the screen
   display.drawString(0, 0, "Cock-a-doodle-doo!");
-  //display.drawString(0, 10, "----5----0----5----0----5----0");
   display.display();
 }
 
@@ -31,27 +39,34 @@ void oled_roost(){
   Serial.println("refreshing OLED");
 
   display.clear();
+
+  // ip address on line 1
   display.drawString(0, 0, wifi_ipaddr);
 
-  dtostrf(h, 2, 2, &hs[0]);
-  sprintf(ls,"Humidity %%%s", hs);
+  // time on line 2
+  sprintf(ls, "GMT %s", ntp_hms);
   display.drawString(0, 10, ls);
 
+  // temperature on line 2
   dtostrf(t, 2, 2, &ts[0]);
   dtostrf(f, 2, 2, &fs[0]);
   sprintf(ls, "Temp c %s f %s", ts, fs);
   display.drawString(0, 20, ls);
 
+  // humidity on line 4
+  dtostrf(h, 2, 2, &hs[0]);
+  sprintf(ls,"Humidity %%%s", hs);
+  display.drawString(0, 30, ls);
+
+  // heat index on line 5
   dtostrf(hic, 2, 2, &ts[0]);
   dtostrf(hif, 2, 2, &fs[0]);
   sprintf(ls, "Indx c %s f %s", ts, fs);
-  display.drawString(0, 30, ls);
-
-  sprintf(ls, "NTP Time %d", ntp_epoch_in_seconds);
   display.drawString(0, 40, ls);
 
-  sprintf(ls, "Motion @ %d", pir_last_motion);
+  // last motion on line 6
+  sprintf(ls, "Motion @ %s", ntp_epoch2hms(pir_last_motion));
   display.drawString(0, 50, ls);
+
   display.display();
 }
-

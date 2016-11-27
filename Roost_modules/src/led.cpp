@@ -1,20 +1,31 @@
 // -----------------------------------------------------------------------------
 // LED control:  code for dealing with the LEDs for the "Roost!" project
+//
+
+// default led on pin 5 (also onboard led)
+#define LED_DEFAULT 5
+// extra led on pin 4
+#define LED_EXTRA 4
+// both pins
+#define LED_BOTH -1
 
 void led_setup() {
+  pinMode(LED_DEFAULT, OUTPUT);
+  pinMode(LED_EXTRA, OUTPUT);
+
   digitalWrite(LED_DEFAULT, LOW);
   digitalWrite(LED_EXTRA, LOW);
 
-  led_blink(LED_DEFAULT, 500);
-  led_blink(LED_EXTRA, 500);
-  led_blink(LED_BOTH, 500);
+  led_blink(LED_DEFAULT, 50);
+  led_blink(LED_EXTRA, 50);
+  led_blink(LED_BOTH, 50);
 }
 
 // -------------------------------------
 // blink the led on pin l for d milliseconds
 // -------------------------------------
 void led_blink(int l, int d){
-  // If extra led not specified then use default
+  // If led not specified then use default
   if (l != LED_EXTRA && l != LED_BOTH) { l = LED_DEFAULT; }
 
   // minimum blink is 10 millis
@@ -42,4 +53,3 @@ void led_blink(int l, int d){
     digitalWrite(l, LOW);
   }
 }
-

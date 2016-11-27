@@ -7,15 +7,15 @@
 //
 #include <DHT.h>
 
-// put the DHT11 on pin 12
+// put the DHT22 on pin 12
 #define DHTPIN 12
-#define DHTTYPE DHT11
-
-// Temperature, humidity and heat index variables
-float h,t,f,hic,hif;
+#define DHTTYPE DHT22
 
 // Digital Humidity Temperature Sensor
 DHT dht(DHTPIN, DHTTYPE);
+
+// Temperature, humidity and heat index variables
+float h=0,t=0,f=0,hic=0,hif=0;
 
 void dht_clear();
 void dht_setup();
