@@ -360,7 +360,7 @@ void sr_ping(){
   sr_cm = (usec/2) / 29.14;
 
   if (sr_cm < 1){ sr_cm = 1; }
-  if (sr_cm > 99){ sr_cm = 99; }
+  if (sr_cm > 999){ sr_cm = 999; }
 }
 
 // -----------------------------------------------------------------------------
@@ -566,6 +566,12 @@ void web_handle_roost(){
   // Last motion
   message += "\nMotion @ ";
   message += ntp_epoch2hms(pir_last_motion);
+  
+  // ultrasonic distance
+  strcpy(x, "\ndistance ");
+  dtostrf(sr_cm, 2, 2, &x[strlen(x)]);
+  message += x;
+  message += " cm";
 
   web_server.send(200, "text/plain", message);
   web_blink();
