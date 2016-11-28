@@ -7,15 +7,10 @@
 
 // Notre Dame public WiFi
 // -------------------------------------
-// const char* ssid = "ND-guest";
-// const char* password = "";
+const char* ssid = "ND-guest";
+const char* password = "";
 
-// Roost class network
-// -------------------------------------
-const char* ssid = "Lincoln Manor";
-const char* password = "...---... sos ...---...";
-
-char wifi_ipaddr[21] = {};
+char wifi_ipaddr[21];
 
 // convert int to dotted quad. thanks stackoverflow.com
 void wifi_format_ip();

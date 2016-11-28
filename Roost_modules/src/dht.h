@@ -15,7 +15,7 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 // Temperature, humidity and heat index variables
-float h=0,t=0,f=0,hic=0,hif=0;
+float h,t,f,hic,hif;
 
 void dht_clear();
 void dht_setup();

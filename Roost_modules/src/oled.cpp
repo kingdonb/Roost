@@ -3,9 +3,21 @@
 //               uses library by Daniel Eichhorn downloaded from github
 //               https://github.com/squix78/esp8266-oled-ssd1306
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 #include "SSD1306.h"
 #include "SSD1306Brzo.h"
 #include "Liberation_Mono.h"
+
+#include "wifi.h"
+#include "ntp.h"
+#include "dht.h"
+#include "pir.h"
+
 // #include "images.h"
 
 // Initialize the OLED display using brzo_i2c

@@ -2,10 +2,12 @@
 // IoT output:  code for dealing with Phant for the "Roost!" project
 //              requires Thingspeak libraries
 //
+#include <ESP8266WiFi.h>
 #include "Phant.h"
+
 const char * phantHost = "data.sparkfun.com";
-const char * phantPublicKey = "VG6Ww5a4DxsdJyqpLVz6";
-const char * phantPrivateKey = "9Y1qEzjeydi2o7vXx8MY";
+const char * phantPublicKey = "XXXXXXXXXXXXXXXXXXXX";
+const char * phantPrivateKey = "XXXXXXXXXXXXXXXXXXXX";
 const int    phantPort = 80;
 
 Phant phant("data.sparkfun.com", phantPublicKey, phantPrivateKey);

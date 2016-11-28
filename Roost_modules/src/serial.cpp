@@ -1,6 +1,17 @@
 // -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
+#include "wifi.h"
+#include "ntp.h"
+#include "dht.h"
+#include "pir.h"
+#include "sonic.h"
 
 #define SERIAL_BAUD 74880               // ESP native speed
 

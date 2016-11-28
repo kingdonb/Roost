@@ -3,8 +3,21 @@
 //              requires ESP8266 WiFi libraries
 //              https://github.com/esp8266/Arduino
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+
+#include "led.h"
+#include "wifi.h"
+#include "ntp.h"
+#include "dht.h"
+#include "pir.h"
+#include "sonic.h"
 
 // Web server
 ESP8266WebServer web_server(80);

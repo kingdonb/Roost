@@ -6,6 +6,12 @@
 //       https://github.com/adafruit/Adafruit_Sensor
 //       https://github.com/adafruit/DHT-sensor-library
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 #include <DHT.h>
 
 // put the DHT22 on pin 12
@@ -40,9 +46,9 @@ void dht_read() {
   f = dht.readTemperature(true);
 
   // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) || isnan(f)) {
+  if ( isnan(h) || isnan(t) || isnan(f) ) {
     // Failed to read from DHT sensor
-    led_blink(LED_DEFAULT, 50);
+    // led_blink(LED_DEFAULT, 50);
     h=t=f=hic=hif=0;
 
   } else {

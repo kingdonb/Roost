@@ -72,13 +72,8 @@ void led_blink(int l, int d){
 
 // Notre Dame public WiFi
 // -------------------------------------
-// const char* ssid = "ND-guest";
-// const char* password = "";
-
-// Roost class network
-// -------------------------------------
-  const char* ssid = "Lincoln Manor";
-  const char* password = "...---... sos ...---...";
+const char* ssid = "ND-guest";
+const char* password = "";
 
 char wifi_ipaddr[21] = {};
 

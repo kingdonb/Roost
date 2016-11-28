@@ -1,6 +1,11 @@
 // -----------------------------------------------------------------------------
 // LED control:  code for dealing with the LEDs for the "Roost!" project
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
 
 // default led on pin 5 (also onboard led)
 #define LED_DEFAULT 5
@@ -8,18 +13,6 @@
 #define LED_EXTRA 4
 // both pins
 #define LED_BOTH -1
-
-void led_setup() {
-  pinMode(LED_DEFAULT, OUTPUT);
-  pinMode(LED_EXTRA, OUTPUT);
-
-  digitalWrite(LED_DEFAULT, LOW);
-  digitalWrite(LED_EXTRA, LOW);
-
-  led_blink(LED_DEFAULT, 50);
-  led_blink(LED_EXTRA, 50);
-  led_blink(LED_BOTH, 50);
-}
 
 // -------------------------------------
 // blink the led on pin l for d milliseconds
@@ -52,4 +45,16 @@ void led_blink(int l, int d){
   } else {
     digitalWrite(l, LOW);
   }
+}
+
+void led_setup() {
+  pinMode(LED_DEFAULT, OUTPUT);
+  pinMode(LED_EXTRA, OUTPUT);
+
+  digitalWrite(LED_DEFAULT, LOW);
+  digitalWrite(LED_EXTRA, LOW);
+
+  led_blink(LED_DEFAULT, 50);
+  led_blink(LED_EXTRA, 50);
+  led_blink(LED_BOTH, 50);
 }

@@ -2,6 +2,14 @@
 // Passive Ifra-Red (PIR) control: code for dealing with the HC-SR501 PIR Motion
 //                                 sensor for the "Roost!" project
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
+#include "led.h"
+#include "ntp.h"
 
 // put the PIR in pin 13
 #define PIRPIN 13

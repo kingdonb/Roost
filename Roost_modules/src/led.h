@@ -9,5 +9,5 @@
 #define LED_BOTH -1
 
 void led_setup();
-void led_blink(int l, int d);
+void led_blink(int, int);
 

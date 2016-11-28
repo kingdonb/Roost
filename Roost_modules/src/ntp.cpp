@@ -4,7 +4,15 @@
 //                        requires ESP8266 WiFi libraries
 //                        https://github.com/esp8266/Arduino
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
+#include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include "led.h"
 
 unsigned int  ntp_local_port = 2390;              // local port to listen for UDP packets
 IPAddress     ntp_server_ip;                      // time.nist.gov NTP server address
@@ -40,6 +48,32 @@ void ntp_setup()
   udp.begin(ntp_local_port);
   Serial.print("Local port: ");
   Serial.println(udp.localPort());
+}
+
+// send an NTP request to the time server at the given address
+unsigned long ntp_send_packet()
+{
+  Serial.println("NTP packet sent...");
+  // set all bytes in the buffer to 0
+  memset(ntp_packet_buffer, 0, NTP_PACKET_SIZE);
+
+  // Initialize values needed to form NTP request
+  ntp_packet_buffer[0] = 0b11100011;   // LI, Version, Mode
+  ntp_packet_buffer[1] = 0;            // Stratum, or type of clock
+  ntp_packet_buffer[2] = 6;            // Polling Interval
+  ntp_packet_buffer[3] = 0xEC;         // Peer Clock Precision
+  // 8 bytes of zero for Root Delay & Root Dispersion
+  ntp_packet_buffer[12]  = 49;
+  ntp_packet_buffer[13]  = 0x4E;
+  ntp_packet_buffer[14]  = 49;
+  ntp_packet_buffer[15]  = 52;
+
+  // all NTP fields have been given values, now
+  // you can send a packet requesting a timestamp
+  // NTP requests are to port 123
+  udp.beginPacket(ntp_server_ip, 123);
+  udp.write(ntp_packet_buffer, NTP_PACKET_SIZE);
+  udp.endPacket();
 }
 
 void ntp_send_request()
@@ -93,30 +127,4 @@ void ntp_read_response()
     led_blink(LED_BOTH, 100);
     ntp_hms = ntp_epoch2hms(ntp_epoch_in_seconds);
   }
-}
-
-// send an NTP request to the time server at the given address
-unsigned long ntp_send_packet()
-{
-  Serial.println("NTP packet sent...");
-  // set all bytes in the buffer to 0
-  memset(ntp_packet_buffer, 0, NTP_PACKET_SIZE);
-
-  // Initialize values needed to form NTP request
-  ntp_packet_buffer[0] = 0b11100011;   // LI, Version, Mode
-  ntp_packet_buffer[1] = 0;            // Stratum, or type of clock
-  ntp_packet_buffer[2] = 6;            // Polling Interval
-  ntp_packet_buffer[3] = 0xEC;         // Peer Clock Precision
-  // 8 bytes of zero for Root Delay & Root Dispersion
-  ntp_packet_buffer[12]  = 49;
-  ntp_packet_buffer[13]  = 0x4E;
-  ntp_packet_buffer[14]  = 49;
-  ntp_packet_buffer[15]  = 52;
-
-  // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp
-  // NTP requests are to port 123
-  udp.beginPacket(ntp_server_ip, 123);
-  udp.write(ntp_packet_buffer, NTP_PACKET_SIZE);
-  udp.endPacket();
 }

@@ -3,17 +3,20 @@
 //               requires ESP8266 WiFi libraries
 //               https://github.com/esp8266/Arduino
 //
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+
 #include <ESP8266WiFi.h>
 
-// Notre Dame public WiFi
-// -------------------------------------
-// const char* ssid = "ND-guest";
-// const char* password = "";
-
-// Roost class network
-// -------------------------------------
-const char* ssid = "Lincoln Manor";
-const char* password = "...---... sos ...---...";
+#include "led.h"
+#include "wifi.h"
+#include "ntp.h"
+#include "dht.h"
+#include "pir.h"
+#include "sonic.h"
 
 char wifi_ipaddr[21] = {};
 
