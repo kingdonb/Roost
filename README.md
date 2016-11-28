@@ -49,12 +49,12 @@ Wire up Lab7 - PIR
 
 Code Lab7 - PIR (add motion to web page)
 
-##Part 4: Ping and Thingspeak
+##Part 4: Ping and Data.SparkFun.com
 
 Wire up Lab8 - Ping (optional depending on time)
 
 Code Lab8 - Ping (add more motion to web page)
 
-Code Lab9 - Thingspeak (Push Data to the web- may spill over to day 2)
+Code Lab9 - data.sparkfun.com (Push Data to the web- may spill over to day 2)
 
 ##Wrap Up
