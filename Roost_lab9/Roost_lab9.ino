@@ -1,5 +1,5 @@
 // =============================================================================
-// File: roost.ino
+// File: Roost_lab9.ino LEDs, serial, Wifi, web, OLED, NTP, temp, motion, distance, data
 // Desc: Roost! An open source implementaion of a temperature and motion 
 //       monitoring station based on an ESP8266 with temperature, humidity,
 //       motion and distance sensors.
@@ -589,12 +589,12 @@ void web_setup(){
 
 // -----------------------------------------------------------------------------
 // IoT output:  code for dealing with Phant for the "Roost!" project
-//              requires Thingspeak libraries
+//              requires phant libraries
 //
 #include "Phant.h"
 const char * phantHost = "data.sparkfun.com";
-const char * phantPublicKey = "VG6Ww5a4DxsdJyqpLVz6";
-const char * phantPrivateKey = "9Y1qEzjeydi2o7vXx8MY";
+const char * phantPublicKey = "xxxxxxxxxxxxxxxxxxxx";
+const char * phantPrivateKey = "xxxxxxxxxxxxxxxxxxxx";
 const int    phantPort = 80;
 
 Phant phant("data.sparkfun.com", phantPublicKey, phantPrivateKey);

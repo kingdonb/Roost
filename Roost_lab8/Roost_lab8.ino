@@ -326,7 +326,7 @@ void pir_chk_motion(){
 // -----------------------------------------------------------------------------
 // SR04 Control: Ultrasonic distance sensor sensor
 //       code for dealing with the SR04 sensor for the "Roost!" project
-//       NOTE: speed of sound is 29.14 usec per centimeter- per Woframalpha
+//       NOTE: speed of sound is 29.14 usec per centimeter- per Wofram Alpha
 //
 #define sr_trig 0
 #define sr_echo 16
