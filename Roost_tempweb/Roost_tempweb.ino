@@ -289,78 +289,6 @@ unsigned long ntp_send_packet()
   udp.endPacket();
 }
 
-/*
-// -----------------------------------------------------------------------------
-// Passive Ifra-Red (PIR) control: code for dealing with the HC-SR501 PIR Motion 
-//                                 sensor for the "Roost!" project
-//
-
-// put the PIR in pin 13
-#define PIRPIN 13
-
-long pir_last_motion = 0;
-bool pir_motion = false;
-
-void pir_setup() {
-  pinMode(PIRPIN, INPUT);
-}
-
-// -------------------------------------
-// take a reading from the PIR sensor
-// -------------------------------------
-void pir_chk_motion(){
-  // check for motion
-  if (digitalRead(PIRPIN) == HIGH) {
-    if (! pir_motion) {
-      // something moved
-      led_blink(LED_BOTH, 100);
-      pir_motion = true;
-      pir_last_motion = ntp_epoch_in_seconds;
-    }
-  } else {
-    if (pir_motion) {
-      // something stopped moving
-      pir_motion = false;
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-// SR04 Control: Ultrasonic distance sensor sensor
-//       code for dealing with the SR04 sensor for the "Roost!" project
-//       NOTE: speed of sound is 29.14 usec per centimeter- per Woframalpha
-//
-#define sr_trig 0
-#define sr_echo 16
-long sr_cm = 0;
-
-void sr_setup() {
-  // define pins and set echo pin LOW
-  Serial.println("Set up ultrasonic sensor");
-
-  pinMode(sr_trig, OUTPUT);
-  pinMode(sr_echo, INPUT);
-  digitalWrite(sr_trig, LOW);
-}
-
-void sr_ping(){
-  // trigger a ping with a 10 usec high pulse
-
-  digitalWrite(sr_trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(sr_trig, LOW);
-  
-  int usec = pulseIn(sr_echo, HIGH);
-  Serial.print("...oooOOO))) usec ");
-  Serial.println(usec);
-
-  sr_cm = (usec/2) / 29.14;
-
-  if (sr_cm < 1){ sr_cm = 1; }
-  if (sr_cm > 999){ sr_cm = 999; }
-}
-*/
-
 // -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
 //  
@@ -399,90 +327,8 @@ void serial_roost() {
   Serial.print(" *C ");
   Serial.print(hif);
   Serial.println(" *F\t");
-/*
-  Serial.print("last motion: ");
-  Serial.println(ntp_epoch2hms(pir_last_motion));  
-  
-  Serial.print("last distance: ");
-  Serial.println(sr_cm);
-  Serial.println("------------------------------");
-  */
+
 }
-
-/*
-// -----------------------------------------------------------------------------
-// OLED control: code for dealing with oled for the "Roost!" project
-//               uses library by Daniel Eichhorn downloaded from github
-//               https://github.com/squix78/esp8266-oled-ssd1306
-//
-#include "SSD1306.h"
-#include "SSD1306Brzo.h"
-#include "Liberation_Mono.h"
-// #include "images.h"
-
-// Initialize the OLED display using brzo_i2c
-// D2 -> SDA
-// D14 -> SCL
-SSD1306Brzo display(0x3c, 2, 14);
-
-// -------------------------------------
-// initialize the oled
-// -------------------------------------
-void oled_setup(){
-  display.init();
-  display.setContrast(255);
-  display.setTextAlignment(TEXT_ALIGN_LEFT);
-  display.setFont(Liberation_Mono_10); // 21 characters per line
-
-  display.flipScreenVertically(); // optional, puts the headers at the top of the screen
-  display.drawString(0, 0, "Cock-a-doodle-doo!");
-  display.display();
-}
-
-// -------------------------------------
-// display roost data on the oled
-// -------------------------------------
-void oled_roost(){
-  char hs[6] = "00.00";                 // humidity
-  char ts[6] = "00.00";                 // temp Celsius
-  char fs[6] = "00.00";                 // temp Fahrenheit
-  char ls[22] = {};                     // line string
-
-  Serial.println("refreshing OLED");
-
-  display.clear();
-  
-  // ip address on line 1
-  display.drawString(0, 0, wifi_ipaddr);
-
-  // time on line 2
-  sprintf(ls, "GMT %s", ntp_hms);
-  display.drawString(0, 10, ls);
-  
-  // temperature on line 2
-  dtostrf(t, 2, 2, &ts[0]);
-  dtostrf(f, 2, 2, &fs[0]);
-  sprintf(ls, "Temp c %s f %s", ts, fs);
-  display.drawString(0, 20, ls);
-  
-  // humidity on line 4
-  dtostrf(h, 2, 2, &hs[0]);
-  sprintf(ls,"Humidity %%%s", hs);
-  display.drawString(0, 30, ls);
-
-  // heat index on line 5
-  dtostrf(hic, 2, 2, &ts[0]);
-  dtostrf(hif, 2, 2, &fs[0]);
-  sprintf(ls, "Indx c %s f %s", ts, fs);
-  display.drawString(0, 40, ls);
-
-  // last motion on line 6
-  sprintf(ls, "Motion @ %s", ntp_epoch2hms(pir_last_motion));
-  display.drawString(0, 50, ls);
-  
-  display.display();
-}
-*/
 
 // -----------------------------------------------------------------------------
 // Web output:  code for dealing with internet for the "Roost!" project
@@ -537,10 +383,7 @@ void web_handle_roost(){
   // GMT
   message += "\nGMT: ";
   message += ntp_hms;
-/*  
-  sprintf(x, "\nLast motion: %d", pir_last_motion);
-  message += x;
-*/
+
   // whoa! Arduino did not implement %f in sprintf
   // this is one of two workarounds (better because
   // it handles negative numbers)
@@ -563,17 +406,7 @@ void web_handle_roost(){
   strcpy(x, "\nHeat Index F: ");
   dtostrf(hif, 2, 2, &x[strlen(x)]);
   message += x;
-/*
-  // Last motion
-  message += "\nMotion @ ";
-  message += ntp_epoch2hms(pir_last_motion);
-  
-  // ultrasonic distance
-  strcpy(x, "\ndistance ");
-  dtostrf(sr_cm, 2, 2, &x[strlen(x)]);
-  message += x;
-  message += " cm";
-  */
+
   web_server.send(200, "text/plain", message);
   web_blink();
 
@@ -613,14 +446,6 @@ void iot_setup(){
 }
 
 void iot_send_data(){
-/*    Serial.print("posting to ");
-    Serial.println(phantHost);
-    
-    if (!client.connect(phantHost, phantPort)) {
-      Serial.println("connection failed");
-      return;
-    }*/
-
     int httpCode = ThingSpeak.writeField(myChannelNumber, 1, t, myWriteAPIKey);
 
     if (httpCode == 200) {
@@ -642,9 +467,9 @@ void iot_send_data(){
     client.print(phant.post());
     */
 
-    delay(20000);
+ 
 
-    /*
+    
     unsigned long timeout = millis();
     while (client.available() == 0) {
       if (millis() - timeout > 5000) {
@@ -660,7 +485,7 @@ void iot_send_data(){
     }
 
     Serial.println();
-    Serial.println("closing connection");*/
+    Serial.println("closing connection");
 }
 
 // =============================================================================
@@ -680,15 +505,6 @@ void setup() {
   // digital humididy temperature
   dht_setup();
 
-/*  // PIR
-  pir_setup();
-
-  // SR04
-  sr_setup();
-
-  // OLED
-  oled_setup();
- */
   // NTP
   ntp_setup();
   
@@ -708,16 +524,7 @@ void loop() {
   // get humidity and temp
   dht_clear();
   dht_read();
-/*
-  // check for motion
-  pir_chk_motion();
 
-  // check proximity every 1 second using ultrasonic sensor
-  if (millis() - sr_last > 1000) {
-    sr_last = millis();
-    sr_ping();
-  }
-*/
   // request NTP time every 60 seconds
   if ((millis() - ntp_received_millis) > 60000){
     ntp_send_request();
@@ -730,17 +537,16 @@ void loop() {
   ntp_epoch_in_seconds = ntp_received_epoch + floor((millis() - ntp_received_millis) / 1000);
   ntp_hms = ntp_epoch2hms(ntp_epoch_in_seconds);
 
-  // send data to cloud every 30 seconds 
+  // send data to cloud every 120 seconds 
   // max rate at data.sparkfun.com is 100 in 15 minutes (9 sec)
-  if ((millis() - iot_last) > 30000){
+  if ((millis() - iot_last) > 120000){
     iot_last = millis();
     iot_send_data();
   }
 
-  // update display and serial every 5 seconds
+  // update serial every 5 seconds
   if (millis() - display_last > 5000) {
       display_last = millis();      
-//      oled_roost();
       serial_roost();
   }
 
