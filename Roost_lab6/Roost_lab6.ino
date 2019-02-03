@@ -539,11 +539,12 @@ void loop() {
 
   // check for ntp response if not received
   if (! ntp_packet_received){ ntp_read_response(); };
-  
+
   // keep time updated, last epoch received plus usec since last epoch received / 1000
   ntp_epoch_in_seconds = ntp_received_epoch + floor((millis() - ntp_received_millis) / 1000);
   ntp_hms = ntp_epoch2hms(ntp_epoch_in_seconds);
 
+  // request NTP time every 60 seconds
   // update time every 60 seconds or when the last request is incomplete
   if ((millis() - ntp_last) > 60000 || (! ntp_packet_received)){
     ntp_last = millis();

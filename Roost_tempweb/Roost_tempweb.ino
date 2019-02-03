@@ -1,6 +1,6 @@
 // =============================================================================
 // File: Roost_lab9.ino LEDs, serial, Wifi, web, OLED, NTP, temp, motion, distance, data
-// Desc: Roost! An open source implementaion of a temperature and motion 
+// Desc: Roost! An open source implementaion of a temperature and motion
 //       monitoring station based on an ESP8266 with temperature, humidity,
 //       motion and distance sensors.
 //
@@ -42,20 +42,20 @@ void led_blink(int l, int d){
 
   // maximum blink is 5 seconds
   if (d>5000) { d=5000; }
-  
+
   // blink on
-  if (l == LED_BOTH) { 
+  if (l == LED_BOTH) {
     digitalWrite(LED_DEFAULT, HIGH);
     digitalWrite(LED_EXTRA, HIGH);
   } else {
     digitalWrite(l, HIGH);
   }
-  
+
   // pause ...
   delay(d);
-  
+
   // blink off
-  if (l == LED_BOTH) { 
+  if (l == LED_BOTH) {
     digitalWrite(LED_DEFAULT, LOW);
     digitalWrite(LED_EXTRA, LOW);
   } else {
@@ -89,13 +89,24 @@ void wifi_format_ip(){
   bytes[3] = (ip >> 24) & 0xFF;
   sprintf(wifi_ipaddr, "IP %d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
 }
- 
+
 void wifi_setup(){
+  unsigned long wifi_timeout = 0;
   //Fire up the wifi
   WiFi.begin(ssid, password);
+  Serial.println("");
+  Serial.println("WiFi.begin");
 
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
+    if(millis() - wifi_timeout > 10000) {
+      Serial.println("");
+      Serial.print("trying again on SSID: ");
+      Serial.println(ssid);
+
+      wifi_timeout = millis();
+      WiFi.begin(ssid, password);
+    }
     delay(500);
     Serial.print("o");
     led_blink(LED_EXTRA, 50);
@@ -140,7 +151,7 @@ void dht_setup(){ dht_clear(); }
 void dht_read() {
   // shamelessly adapted from DHTtester.ino in Adafruit library examples
   dht_clear();
-  
+
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   h = dht.readHumidity();
@@ -168,7 +179,7 @@ void dht_read() {
 
 // -----------------------------------------------------------------------------
 // Network time protocol: code for dealing with NTP for the "Roost!" project
-//                        shamelessly adapted from NTPClient example in ESP8266 library 
+//                        shamelessly adapted from NTPClient example in ESP8266 library
 //                        requires ESP8266 WiFi libraries
 //                        https://github.com/esp8266/Arduino
 //
@@ -192,12 +203,12 @@ WiFiUDP udp;
 char* ntp_epoch2hms(unsigned long epoch)
 {
   char* hms = "00:00:00";
-  
+
   // print the hour, minute and second:
   unsigned long hh=((epoch % 86400L) / 3600);
   unsigned long mm=((epoch % 3600) / 60);
   unsigned long ss=(epoch % 60);
-    
+
   sprintf(hms, "%02d:%02d:%02d", hh, mm, ss);
   return(hms);
 }
@@ -214,7 +225,7 @@ void ntp_send_request()
 {
   // get a random server from the pool
   WiFi.hostByName(ntp_server_name, ntp_server_ip);
-  
+
   // send an NTP packet to a time server
   ntp_send_packet();
 }
@@ -223,14 +234,14 @@ void ntp_read_response()
 {
   int cb = udp.parsePacket();
   if (!cb) {
-    ntp_packet_received = false;  
-    // Serial.println("NTP no packet yet");
-    
+    ntp_packet_received = false;
+    Serial.println("NTP no packet yet");
+    delay(45); // wait at least 40ms to prevent too much serial noise
   } else {
     ntp_packet_received = true;
     Serial.print("NTP packet received, length=");
     Serial.println(cb);
-    
+
     // We've received a packet, read the data from it
     udp.read(ntp_packet_buffer, NTP_PACKET_SIZE); // read the packet into the buffer
 
@@ -269,7 +280,7 @@ unsigned long ntp_send_packet()
   Serial.println("NTP packet sent...");
   // set all bytes in the buffer to 0
   memset(ntp_packet_buffer, 0, NTP_PACKET_SIZE);
-  
+
   // Initialize values needed to form NTP request
   ntp_packet_buffer[0] = 0b11100011;   // LI, Version, Mode
   ntp_packet_buffer[1] = 0;            // Stratum, or type of clock
@@ -287,11 +298,12 @@ unsigned long ntp_send_packet()
   udp.beginPacket(ntp_server_ip, 123);
   udp.write(ntp_packet_buffer, NTP_PACKET_SIZE);
   udp.endPacket();
+  ntp_packet_received = false;
 }
 
 // -----------------------------------------------------------------------------
 // Serial output: code for dealing with serial output for the "Roost!" project
-//  
+//
 
 // ESP native speed
 #define SERIAL_BAUD 115200
@@ -303,22 +315,22 @@ void serial_setup(){
 
 void serial_roost() {
   Serial.println("------------------------------");
-  
+
   Serial.print("WiFi address: ");
   Serial.println(wifi_ipaddr);
-  
+
   Serial.print("current epoch: ");
   Serial.println(ntp_epoch_in_seconds);
 
   Serial.print("GMT: ");
   Serial.println(ntp_hms);
-  
+/*
   Serial.print("Temperature: ");
   Serial.print(t);
   Serial.print(" *C ");
   Serial.print(f);
   Serial.println(" *F");
-  
+
   Serial.print("Humidity %");
   Serial.println(h);
 
@@ -327,7 +339,7 @@ void serial_roost() {
   Serial.print(" *C ");
   Serial.print(hif);
   Serial.println(" *F\t");
-
+*/
 }
 
 // -----------------------------------------------------------------------------
@@ -344,7 +356,7 @@ ESP8266WebServer web_server(80);
 // web blink pattern
 void web_blink(){
   led_blink(LED_DEFAULT, 10);
-  delay(50); 
+  delay(50);
   led_blink(LED_DEFAULT, 10);
 }
 
@@ -394,7 +406,7 @@ void web_handle_roost(){
   strcpy(x, "\nTemp F: ");
   dtostrf(f, 2, 2, &x[strlen(x)]);
   message += x;
-  
+
   strcpy(x, "\nHumidity %");
   dtostrf(h, 2, 2, &x[strlen(x)]);
   message += x;
@@ -436,6 +448,9 @@ void web_setup(){
 
 unsigned long myChannelNumber = SECRET_CH_ID;
 const char * myWriteAPIKey = SECRET_WRITE_APIKEY;
+unsigned int celsiusTempField = TEMP_C_FIELD_NUM;
+unsigned int fahrenheitField = TEMP_F_FIELD_NUM;
+unsigned int humidityField = HUMIDITY_FIELD_NUM;
 
 WiFiClient  client;
 
@@ -446,7 +461,10 @@ void iot_setup(){
 }
 
 void iot_send_data(){
-    int httpCode = ThingSpeak.writeField(myChannelNumber, 1, t, myWriteAPIKey);
+    ThingSpeak.setField(celsiusTempField, t);
+    ThingSpeak.setField(fahrenheitField, f);
+    ThingSpeak.setField(humidityField, h);
+    int httpCode = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 
     if (httpCode == 200) {
       Serial.println("Channel write successful.");
@@ -454,23 +472,13 @@ void iot_send_data(){
     else {
       Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
     }
-/*
-    phant.add("temp_c",t);
-    phant.add("temp_f",f);
-    phant.add("humidity",h);
-    phant.add("epoch",ntp_epoch_in_seconds);*/
-/*    phant.add("motion",pir_last_motion);
-    phant.add("distance",sr_cm);*/
+    
+    // phant.add("epoch",ntp_epoch_in_seconds);
 /*
     Serial.println("----HTTP POST----");
     Serial.println(phant.queryString());
-    client.print(phant.post());
-    */
-
- 
-
-    
-    unsigned long timeout = millis();
+    client.print(phant.post()); */
+/*  unsigned long timeout = millis();
     while (client.available() == 0) {
       if (millis() - timeout > 5000) {
         Serial.println("client timeout :(");
@@ -485,7 +493,7 @@ void iot_send_data(){
     }
 
     Serial.println();
-    Serial.println("closing connection");
+    Serial.println("closing connection"); */
 }
 
 // =============================================================================
@@ -495,19 +503,19 @@ void setup() {
 
   // leds off, please
   led_setup();
-  
+
   // serial for debugging
   serial_setup();
-  
+
   // WiFi
   wifi_setup();
-  
+
   // digital humididy temperature
   dht_setup();
 
   // NTP
   ntp_setup();
-  
+
   // WWW
   web_setup();
 
@@ -517,27 +525,30 @@ void setup() {
 
 // =============================================================================
 void loop() {
-  static int display_last = 0;
-  static int iot_last = 0;
-  static int sr_last = 0;
+  static unsigned long display_last = 0;
+  static unsigned long iot_last = 0;
+  static unsigned long ntp_last = 0;
 
   // get humidity and temp
   dht_clear();
   dht_read();
 
-  // request NTP time every 60 seconds
-  if ((millis() - ntp_received_millis) > 60000){
-    ntp_send_request();
-  }
-
   // check for ntp response if not received
   if (! ntp_packet_received){ ntp_read_response(); };
-  
+
   // keep time updated, last epoch received plus usec since last epoch received / 1000
   ntp_epoch_in_seconds = ntp_received_epoch + floor((millis() - ntp_received_millis) / 1000);
   ntp_hms = ntp_epoch2hms(ntp_epoch_in_seconds);
 
-  // send data to cloud every 120 seconds 
+  // request NTP time every 60 seconds
+  // update time every 60 seconds or 5 seconds when the last request is incomplete
+  if ((millis() - ntp_last) > 60000 || (
+    (! ntp_packet_received) && ((millis() - ntp_last) > 5000) )){
+    ntp_last = millis();
+    ntp_send_request();
+  }
+
+  // send data to cloud every 120 seconds
   // max rate at data.sparkfun.com is 100 in 15 minutes (9 sec)
   if ((millis() - iot_last) > 120000){
     iot_last = millis();
@@ -546,8 +557,8 @@ void loop() {
 
   // update serial every 5 seconds
   if (millis() - display_last > 5000) {
-      display_last = millis();      
-      serial_roost();
+    display_last = millis();
+    serial_roost();
   }
 
   // let the web server do its thing every iteration

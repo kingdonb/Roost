@@ -7,4 +7,8 @@
 #define WIFI_SSID "ND-guest"
 #define WIFI_PASS ""
 
+#define TEMP_C_FIELD_NUM 1
+#define TEMP_F_FIELD_NUM 3
+#define HUMIDITY_FIELD_NUM 5
+
 #endif
