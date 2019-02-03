@@ -324,7 +324,7 @@ void serial_roost() {
 
   Serial.print("GMT: ");
   Serial.println(ntp_hms);
-/*
+
   Serial.print("Temperature: ");
   Serial.print(t);
   Serial.print(" *C ");
@@ -339,7 +339,7 @@ void serial_roost() {
   Serial.print(" *C ");
   Serial.print(hif);
   Serial.println(" *F\t");
-*/
+
 }
 
 // -----------------------------------------------------------------------------
@@ -472,6 +472,8 @@ void iot_send_data(){
     else {
       Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
     }
+
+    led_blink(LED_DEFAULT, 500);
     
     // phant.add("epoch",ntp_epoch_in_seconds);
 /*
@@ -543,14 +545,18 @@ void loop() {
   // request NTP time every 60 seconds
   // update time every 60 seconds or 5 seconds when the last request is incomplete
   if ((millis() - ntp_last) > 60000 || (
-    (! ntp_packet_received) && ((millis() - ntp_last) > 5000) )){
+      (! ntp_packet_received) && ((millis() - ntp_last) > 5000) ) || (
+      (ntp_last == 0 && millis() > 90) )
+    ){
     ntp_last = millis();
     ntp_send_request();
   }
 
-  // send data to cloud every 120 seconds
-  // max rate at data.sparkfun.com is 100 in 15 minutes (9 sec)
-  if ((millis() - iot_last) > 120000){
+  // in general send data to cloud every 120 seconds, but
+  // also send initial datapoint after delay of 20 seconds.
+  // max rate at ThingSpeak is ~8000 per day, or every 10 sec
+  if (iot_last == 0 && millis() > 20000 ||
+      (millis() - iot_last) > 120000){
     iot_last = millis();
     iot_send_data();
   }
