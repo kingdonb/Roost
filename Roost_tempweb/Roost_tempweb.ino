@@ -45,10 +45,10 @@ void led_blink(int l, int d){
 
   // blink on
   if (l == LED_BOTH) {
-    digitalWrite(LED_DEFAULT, HIGH);
-    digitalWrite(LED_EXTRA, HIGH);
+    digitalWrite(LED_DEFAULT, LOW);
+    digitalWrite(LED_EXTRA, LOW);
   } else {
-    digitalWrite(l, HIGH);
+    digitalWrite(l, LOW);
   }
 
   // pause ...
@@ -56,10 +56,10 @@ void led_blink(int l, int d){
 
   // blink off
   if (l == LED_BOTH) {
-    digitalWrite(LED_DEFAULT, LOW);
-    digitalWrite(LED_EXTRA, LOW);
+    digitalWrite(LED_DEFAULT, HIGH);
+    digitalWrite(LED_EXTRA, HIGH);
   } else {
-    digitalWrite(l, LOW);
+    digitalWrite(l, HIGH);
   }
 }
 
